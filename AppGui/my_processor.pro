@@ -12,6 +12,15 @@ TARGET = my_processor
 TEMPLATE = app
 
 
+INCLUDEPATH += "../pdpEleven/"
+
+CONFIG(debug, debug|release) {
+    LIBS += -L../build-pdpEleven/debug/ -lpdpEleven
+}
+else {
+    LIBS += -L./build-pdpEleven/release/ -lpdpEleven
+}
+
 SOURCES += main.cpp\
         processorwindow.cpp
 

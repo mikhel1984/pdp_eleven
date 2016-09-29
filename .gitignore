@@ -1,0 +1,4 @@
+AppGui/*.pro.user
+pdpEleven/*.pro.user
+build*
+libPdpEleven

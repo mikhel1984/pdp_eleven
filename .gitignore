@@ -2,3 +2,4 @@ AppGui/*.pro.user
 pdpEleven/*.pro.user
 build*
 libPdpEleven
+.DS_Store

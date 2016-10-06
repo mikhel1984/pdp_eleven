@@ -1,6 +1,7 @@
 
 #include "memmory.h"
 #include "stdint.h"
+#include "stddef.h"
 
 /*                     MEMMORY MAP
  *
@@ -30,8 +31,8 @@ uint8_t* buffer = NULL;
 
 bool memmoryInitialize()
 {
-    buffer = (uint8_t*)malloc(memmorySize);
-    memset(buffer, memmorySize, 0);
+    buffer = (uint8_t*)malloc(memmoryTotalSize);
+    memset(buffer, memmoryTotalSize, 0);
 
-    return (buff) ? true : false;
+    return (buffer) ? true : false;
 }

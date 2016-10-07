@@ -5,7 +5,6 @@
 
 class QGraphicsScene;
 class QImage;
-class QTimer;
 
 namespace Ui {
 class ProcessorWindow;
@@ -19,29 +18,21 @@ public:
     explicit ProcessorWindow(QWidget *parent = 0);
     ~ProcessorWindow();
 
+private:
+
 private slots:
-    void on_runButton_clicked();
-
-    void on_stopButton_clicked();
-
-    void on_resetButton_clicked();
-
-    void update_monitor();
+    void slotRunButtonClicked();
+    void slotStopButtonClicked();
+    void slotResetButtonClicked();
 
 private:
-    void redrawMonitor();
-    void nextStep();
-
     QGraphicsScene *gScene;
     QImage *gImage;
-    QTimer *timer;
-
-    int step; // for testing
 
     Ui::ProcessorWindow *ui;
 
-
-
+    const uint16_t monitorHeight;
+    const uint16_t monitorWidth;
 };
 
 #endif // PROCESSORWINDOW_H

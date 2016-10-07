@@ -1,5 +1,5 @@
 
-#include "memmory.h"
+#include "memory.h"
 #include "stdint.h"
 #include "stddef.h"
 
@@ -35,4 +35,9 @@ bool memmoryInitialize()
     memset(buffer, memmoryTotalSize, 0);
 
     return (buffer) ? true : false;
+}
+
+uint8_t getVideoRom()
+{
+    return buffer + offsetVideoRam;
 }

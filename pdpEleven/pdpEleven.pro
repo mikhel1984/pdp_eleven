@@ -11,9 +11,9 @@ TEMPLATE = lib
 CONFIG += staticlib
 
 SOURCES += \
-    memmory.c \
-    pdpeleven.c
+    pdpeleven.c \
+    memory.c
 
 HEADERS += pdpeleven.h \
     font.h \
-    memmory.h
+    memory.h

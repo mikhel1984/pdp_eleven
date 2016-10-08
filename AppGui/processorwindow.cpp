@@ -15,8 +15,8 @@ extern "C"
 ProcessorWindow::ProcessorWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::ProcessorWindow)
-    , monitorHeight(getVideoHeight())
-    , monitorWidth(getVideoWidth())
+    , monitorHeight(VIDEO_HEIGHT)
+    , monitorWidth(VIDEO_WIDTH)
 {
     ui->setupUi(this);
     gScene = new QGraphicsScene();    
@@ -35,7 +35,7 @@ ProcessorWindow::~ProcessorWindow()
 }
 
 /*
- *                      Public slot
+ *  Public slot
  */
 
 void ProcessorWindow::slotRunButtonClicked()

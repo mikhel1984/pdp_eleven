@@ -9,14 +9,6 @@
  *                      MEMMORY MAP
  */
 
-#define MEMMORY_IVT_SIZE        16384
-#define MEMMORY_RAM_SIZE        16384
-#define MEMMORY_VIDEO_RAM_SIZE  16384
-#define MEMMORY_ROM_SIZE        16384
-#define MEMMORY_IO_SIZE         16384
-
-#define REGISTER_NUMBER         6
-
 static const uint32_t MEMMORY_TOTAL_SIZE = MEMMORY_IVT_SIZE + MEMMORY_RAM_SIZE +
                       MEMMORY_VIDEO_RAM_SIZE + MEMMORY_ROM_SIZE + MEMMORY_IO_SIZE +
                       REGISTER_NUMBER;
@@ -42,14 +34,4 @@ bool memmoryInitialize()
 const uint8_t* getVideoRom()
 {
     return (buffer + OFFSET_VIDEO_RAM);
-}
-
-uint16_t getVideoHeight()
-{
-    return 256;
-}
-
-uint16_t getVideoWidth()
-{
-    return 256;
 }

@@ -2,42 +2,36 @@
 #include "memory.h"
 #include "stdint.h"
 #include "stddef.h"
+#include "stdlib.h"
+#include "string.h"
 
-/*                     MEMMORY MAP
- *
- *
+/*
+ *                      MEMMORY MAP
  */
 
-static const uint32_t memmoryIvtSize      = 16384;
-static const uint32_t memmoryRamSize      = 16384;
-static const uint32_t memmoryVideoRamSize = 16384;
-static const uint32_t memmoryRomSize      = 16384;
-static const uint32_t memmoryIOSize       = 16384;
-
-static const uint8_t  registerNumber = 6;
-
-static const uint32_t memmoryTotalSize = memmoryIvtSize + memmoryRamSize +
-        memmoryVideoRamSize + memmoryRomSize + memmoryIOSize +
-        registerNumber;
+static const uint32_t MEMMORY_TOTAL_SIZE = MEMMORY_IVT_SIZE + MEMMORY_RAM_SIZE +
+                      MEMMORY_VIDEO_RAM_SIZE + MEMMORY_ROM_SIZE + MEMMORY_IO_SIZE +
+                      REGISTER_NUMBER;
 
 // offset
-static const uint32_t offsetIvt = 0;
-static const uint32_t offsetRam = memmoryIvtSize;
-static const uint32_t offsetVideoRam = offsetRam + memmoryRamSize;
-static const uint32_t offsetRom = offsetVideoRam + memmoryRomSize;
-static const uint32_t offsetIO = offsetRom + memmoryRomSize;
+static const uint32_t OFFSET_IVT       = 0;
+static const uint32_t OFFSET_RAM       = MEMMORY_IVT_SIZE;
+static const uint32_t OFFSET_VIDEO_RAM = MEMMORY_IVT_SIZE + MEMMORY_RAM_SIZE;
+static const uint32_t OFFSET_ROM       = MEMMORY_IVT_SIZE + MEMMORY_RAM_SIZE + MEMMORY_ROM_SIZE;
+static const uint32_t OFFSET_IO        = MEMMORY_IVT_SIZE + MEMMORY_RAM_SIZE + MEMMORY_ROM_SIZE +
+                                         MEMMORY_ROM_SIZE;
 
 uint8_t* buffer = NULL;
 
 bool memmoryInitialize()
 {
-    buffer = (uint8_t*)malloc(memmoryTotalSize);
-    memset(buffer, memmoryTotalSize, 0);
+    buffer = (uint8_t*)malloc(MEMMORY_TOTAL_SIZE);
+    memset(buffer, 0, MEMMORY_TOTAL_SIZE);
 
     return (buffer) ? true : false;
 }
 
-uint8_t getVideoRom()
+const uint8_t* getVideoRom()
 {
-    return buffer + offsetVideoRam;
+    return (buffer + OFFSET_VIDEO_RAM);
 }

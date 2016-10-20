@@ -2,6 +2,7 @@
 #define PROCESSORWINDOW_H
 
 #include <QMainWindow>
+#include <stdint.h>
 
 class QGraphicsScene;
 class QImage;

@@ -5,20 +5,18 @@
 
 int main()
 {
-    FILE* file = fopen("/Users/vansickle/work/innopolis/ca/pdp_eleven/pdpElevenAsm/strcpylen.asm", "r");
+    /*
+    FILE* file = fopen("E:\\Archive\\Archive\\Study\\Innopolis\\Pre-master\\Fall\\Computer achitecture\\Project\\pdp_eleven\\pdpElevenAsm\\strcpylen.asm", "r");
     if (!file)
         return 2;
 
-    int error;
-    error = fseek(file, 0, SEEK_END);
-//    if (error != 0)
-//        return 1;
+    fseek(file, 0, SEEK_END);
     int size = ftell(file);
 
     fseek(file, 0, SEEK_SET);
 
     char* buffer = (char *)malloc(size);
-    error = fread(buffer, 1, size, file);
+    int error = fread(buffer, 1, size, file);
 
     if (error!=size)
         return 1;
@@ -29,22 +27,33 @@ int main()
 
 
     uint32_t* result = NULL;
-    int result_size = 0;
+    int result_size = 0;*/
 
-    error = assembly(buffer, size, &result, &result_size);
+    const char *buf[] = {
+        "; Program to copy and determine length of string",
+        ".origin 1000",
+        "start: mov #msga, r1",
+        "   mov #msgb, r2",
+        "   clr r0",
+        "l1: movb (r1)+, (r2)+",
+        "   beq done",
+        "   inc r0",
+        "   br l1",
+        "done: halt",
+        "msga: .string \"A string whose length is to be determined\"",
+        "msgb: .string \"Different string that should get overwritten\"",
+        ".end start"
+    };
 
-    for(int i=0; i<result_size; i+=2){
+    uint16_t *result = NULL;
+    uint16_t resultSize = 0;
+
+    assembly(buf, 13, &result, &resultSize);
+
+    for(int i=0; i<resultSize; i+=2)
+    {
         printf("%o %o\n", result[i], result[i+1]);
     }
-
-//        printf("%o\n", result[0]);
-    //    printf("%o\n", result[1]);
-
-//    char* text = "";
-
-//    uint32_t* result = assembly("ADD R0, R1");
-//    printf("%o\n", result[0]);
-//    printf("%o\n", result[1]);
 
     return 0;
 }

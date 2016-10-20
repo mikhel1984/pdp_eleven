@@ -12,8 +12,10 @@ CONFIG += staticlib
 
 SOURCES += \
     pdpeleven.c \
-    memory.c
+    memory.c \
+    asm.c
 
 HEADERS += pdpeleven.h \
     font.h \
-    memory.h
+    memory.h \
+    asm.h

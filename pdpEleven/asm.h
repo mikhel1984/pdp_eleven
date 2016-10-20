@@ -3,6 +3,6 @@
 
 #include "stdint.h"
 
-extern uint32_t* assembly(char* text, int size, char** result, int* result_size);
+extern int assembly(char** text, int size, uint16_t** result, uint16_t* resultSize);
 
 #endif // ASM_H

@@ -3,15 +3,6 @@
 #include "string.h"
 #include "stdlib.h"
 
-int assembly(char** text, int size, uint16_t** result, uint16_t* resultSize)
-{
-    // 10 11
-
-    convertAsci(text[11], result, resultSize);
-
-    return 1;
-}
-
 void convertAsci(const char* src, uint16_t **dst, uint16_t *dstSize)
 {
     const uint16_t startAddr = 02000;
@@ -56,4 +47,14 @@ void convertAsci(const char* src, uint16_t **dst, uint16_t *dstSize)
     }
 
     (*dstSize) = len;
+}
+
+
+int assembly(char** text, int size, uint16_t** result, uint16_t* resultSize)
+{
+    // 10 11
+
+    convertAsci(text[11], result, resultSize);
+
+    return 1;
 }

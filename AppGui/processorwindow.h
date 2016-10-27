@@ -26,6 +26,8 @@ private slots:
     void slotStopButtonClicked();
     void slotResetButtonClicked();
 
+    void on_assemblyButton_clicked();
+
 private:
     QGraphicsScene *gScene;
     QImage *gImage;

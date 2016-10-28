@@ -1,8 +1,8 @@
 #ifndef ASM_H
 #define ASM_H
 
-#include "stdint.h"
+#include "common.h"
 
-extern int assembly(char** text, int size, uint16_t** result, uint16_t* resultSize);
+extern int assembly(const char* text[], int size);
 
 #endif // ASM_H

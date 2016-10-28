@@ -14,11 +14,15 @@ SOURCES += \
     pdpeleven.c \
     memory.c \
     asm.c \
-    processor.c
+    processor.c \
+    arraylist.c
 
 HEADERS += pdpeleven.h \
     font.h \
     memory.h \
     asm.h \
     processor.h \
-    test_program.h
+    test_program.h \
+    utils.h \
+    common.h \
+    arraylist.h

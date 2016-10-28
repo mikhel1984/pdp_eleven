@@ -3,7 +3,7 @@
 
 #include "test_program.h"
 
-#define DEBUG_MODE
+//#define DEBUG_MODE
 
 // Flags
 
@@ -34,7 +34,48 @@
 #define PC_REG   07
 #define REG_NUMBER 8
 
+// test
+void print8(uint8_t val) {
+    int state, i;
+    for(i = 7; i>= 0; --i) {
+        state = val & (1 << i);
+        printf("%d%s", state ? 1 : 0, i%4 ? "" : " ");
+    }
+}
 
+void print16(uint16_t val) {
+    int state, i;
+    for(i = 15; i >= 0; --i) {
+        state = val & (1 << i);
+        printf("%d%s", state ? 1 : 0, i%4 ? "" : " ");
+    }
+}
+
+
+// additional code
+
+uint8_t inv_code8(uint8_t val) {
+    return (~val|017)+1;
+}
+
+uint16_t inv_code16(uint16_t val) {
+    return ((~val|0377)+1);
+}
+
+uint16_t add_code16(uint16_t val) {
+    return (IS_BYTE(val)) ? inv_code16(val) : val;
+}
+
+uint16_t convert16t(uint8_t val) {
+    if(val >> 07) {
+        return 0177400 + (uint16_t) val;
+    }
+    return (uint16_t) val;
+}
+
+uint16_t sum16(uint16_t v1, uint16_t v2) {
+    return v1 + v2;
+}
 
 // pointers to memory
 
@@ -231,7 +272,7 @@ uint16_t* toWordPtr(uint16_t op) {
 }
 
 // Clear dst
-void _clr(uint16_t op) {
+int _clr(uint16_t op) {
     CLEAR_(_N); SET_(_Z); CLEAR_(_V); CLEAR_(_C);
 
     if(IS_BYTE(op))
@@ -244,10 +285,11 @@ void _clr(uint16_t op) {
 #ifdef DEBUG_MODE
     puts("CLR");
 #endif // DEBUG_MODE
+    return 1;
 }
 
 // Complement dst
-void _com(uint16_t op) {
+int _com(uint16_t op) {
     CLEAR_(_V); SET_(_C);
 
     uint16_t *wPtr = toWordPtr(op);
@@ -269,10 +311,11 @@ void _com(uint16_t op) {
 #ifdef DEBUG_MODE
     puts("COM");
 #endif // DEBUG_MODE
+    return 1;
 }
 
 // Increment dst
-void _inc(uint16_t op) {
+int _inc(uint16_t op) {
     uint16_t *wPtr = toWordPtr(op);
     SET_IF(_V, *wPtr==077777);
 
@@ -287,10 +330,11 @@ void _inc(uint16_t op) {
 #ifdef DEBUG_MODE
     puts("INC");
 #endif // DEBUG_MODE
+    return 1;
 }
 
 // Decrement dst
-void _dec(uint16_t op) {
+int _dec(uint16_t op) {
     uint16_t *wPtr = toWordPtr(op);
     SET_IF(_V, *wPtr==BITMAX);
 
@@ -305,19 +349,22 @@ void _dec(uint16_t op) {
 #ifdef DEBUG_MODE
     puts("DEC");
 #endif // DEBUG_MODE
+    return 1;
 }
 
 // Negate dst
-void _neg(uint16_t op) {
+int _neg(uint16_t op) {
     uint16_t *wPtr = toWordPtr(op);
 
     if(IS_BYTE(op)) {
         uint8_t* tmp = getByte(op);
-        *tmp = -(*tmp);
+        //*tmp = -(*tmp);
+        *tmp = inv_code8(*tmp);
     }
     else {
         uint16_t* tmp = getWord(op);
-        *tmp = -(*tmp);
+        //*tmp = -(*tmp);
+        *tmp = inv_code16(*tmp);
     }
 
     SET_IF(_N, IS_BYTE(*wPtr));
@@ -328,10 +375,11 @@ void _neg(uint16_t op) {
 #ifdef DEBUG_MODE
     puts("NEG");
 #endif // DEBUG_MODE
+    return 1;
 }
 
 // Test dst
-void _tst(uint16_t op) {
+int _tst(uint16_t op) {
     uint16_t *wPtr = toWordPtr(op);
 
     CLEAR_(_V); CLEAR_(_V);
@@ -341,76 +389,76 @@ void _tst(uint16_t op) {
 #ifdef DEBUG_MODE
     puts("TST");
 #endif // DEBUG_MODE
+    return 1;
 }
 
-void _mov(uint16_t op) {
+int _mov(uint16_t op) {
     CLEAR_(_V);
     if(IS_BYTE(op)) {
         uint8_t *dst = getByte(op);
         uint8_t *src = getByte(op >> 06);
         *dst = *src;
+        printf(" %c ", (char) *src);
         SET_IF(_Z, *src == 0);
         SET_IF(_N, (*src) >> SHIFT7);
     }
     else {
         uint16_t *dst = getWord(op);
         uint16_t *src = getWord(op >> 06);
-        *dst = *src;
-        //printf(" -%6o- ", *src);
+        *dst = *src;        
         SET_IF(_Z, *src == 0);
         SET_IF(_N, IS_BYTE(*src));
     }
 #ifdef DEBUG_MODE
     puts(IS_BYTE(op) ? "MOVB" : "MOV");
 #endif // DEBUG_MODE
+    return 1;
 }
 
-void _beq(uint16_t op) {
-    if(GET_(_N)) {
-        uint16_t *pc = getRegister(07);
-        uint16_t offset = op & ((1 << 010)-1);
-        *pc += offset << 1;  // 2*offset
-    }
-
+int _beq(uint16_t op) {
 #ifdef DEBUG_MODE
     puts("BEQ");
 #endif // DEBUG_MODE
+    if(GET_(_Z)) {
+        uint16_t *pc = getRegister(PC_REG);
+        uint8_t offset8 = (uint8_t) op;
+        uint16_t offset = convert16t(offset8);
+        *pc += 02;
+        *pc += offset;
+        *pc += offset;
+        return 0;
+    }
+    return 1;
 }
 
-void _br(uint16_t op) {
-    uint16_t *pc = getRegister(07);
-    uint16_t offset = op & ((1 << 010)-1);
-    *pc += (offset << 1) + 02;
+int _br(uint16_t op) {
+    uint16_t *pc = getRegister(PC_REG);
+    uint8_t offset8 = (uint8_t) op;
+    uint16_t offset = convert16t(offset8);
+    *pc += 02;
+    *pc += offset;
+    *pc += offset;
 
 #ifdef DEBUG_MODE
     puts("BR");
 #endif // DEBUG_MODE
+    return 0;
 }
 
+
+
 int eval(uint16_t opcode) {
-    /*
-    uint16_t wopcode = opcode & ~(1 << SHIFT7);
-    if     ((wopcode >> 06) & 050) { _clr(opcode); }  // CLR
-    else if((wopcode >> 06) & 052) { _inc(opcode); }  // INC
-    else if((wopcode >> 014) & 01) { _mov(opcode); }  // MOV
-    else if((wopcode >> 010) & 03) { _beq(opcode); }  // BEQ
-    else if((wopcode >> 010) & 01) { _br(opcode);  }  // BR
 
-    else { return 0; }
-    */
     if((opcode >= 0005000 && opcode < 0005100) || (opcode >= 0105000 && opcode < 0105100))
-    { _clr(opcode); } // CLR
+    { return _clr(opcode); } // CLR
     else if((opcode >= 0005200 && opcode < 0005300) || (opcode >= 0105200 && opcode < 0105300))
-    { _inc(opcode); } // INC
+    { return _inc(opcode); } // INC
     else if((opcode >= 0010000 && opcode < 0020000) || (opcode >= 0110000 && opcode < 0120000))
-    { _mov(opcode); } // MOV
+    { return _mov(opcode); } // MOV
     else if(opcode >= 0001400 && opcode < 0001500)
-    { _beq(opcode); } // BEQ
+    { return _beq(opcode); } // BEQ
     else if(opcode >= 0000400 && opcode < 0001000)
-    { _br(opcode); }  // BR
-
-    else { return 0; }
-
+    { return _br(opcode); }  // BR
 
     return 1;
 }
@@ -424,22 +472,39 @@ void printRegisters() {
 void testProcessor() {
 
     uint16_t opcode;
-    int step;
+    int step = 0, inc_address = 0, i;
 
     resetFlags();
     resetRegisters();
 
-    opcode = nextWord(0);
+    // test string(s)
+    uint8_t *mem = (uint8_t*) programm_;
+    for(i = 20; i < 108; ++i) {
+        printf("%c", (char) mem[i]);
+    }
+    printf("\n");
+
+    opcode = nextWord(inc_address);
     printRegisters();
 
-    for(step = 0; step < 10; ++step) {
+
+    //for(step = 0; step < 170; ++step) {
+    while(opcode != HALT) {
     //while((opcode = nextWord()) != HALT) {
 
-        eval(opcode);
+        inc_address = eval(opcode);
         printRegisters();
-        opcode = nextWord(1);
+        opcode = nextWord(inc_address);
         //printf("\n");
+        step ++;
     }
+    // after work
+    printf("\nNumber of circles: %d\n", step);
+    printf("\n");
+    for(i = 20; i < 108; ++i) {
+        printf("%c", (char) mem[i]);
+    }
+    printf("\n");
 
 }
 

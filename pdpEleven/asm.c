@@ -8,6 +8,10 @@
 #include "asmParseCommand.h"
 #include "asmUtils.h"
 
+#include "dictionary.h"
+
+dict_t macros = NULL;
+
 /*
  *  Defenition
  */
@@ -26,6 +30,8 @@ int assembly(const char* text[], int size)
 {
     uint16_t startCode = 0;
     int i;
+
+    macros = dictNew();
 
     const char* str = NULL;
 
@@ -48,6 +54,8 @@ int assembly(const char* text[], int size)
             convertProgram(startCode, text, i+1, size);
         }
     }
+
+    free(macros);
 
     return TRUE;
 }
@@ -90,7 +98,7 @@ void convertProgram(int startCode, const char* text[], int currIndex,  int size)
                cmds[i].address, cmdName[cmds[i].cmd], cmds[i].param1, cmds[i].param2);
     }
 
-    array_print();
+    arrayPrint();
 }
 
 void convertAsci(uint16_t* addr, const char* str)
@@ -104,29 +112,29 @@ void convertAsci(uint16_t* addr, const char* str)
 
     while(curr != end)
     {
-        array_push(*addr);
+        arrayPush(*addr);
         *addr += 2;
 
         world = *curr;
 
         if(curr == end - 1)
         {
-            array_push(world);
+            arrayPush(world);
             break;
         }
 
         world |= (*(curr+1) << 8);
-        array_push(world);
+        arrayPush(world);
 
         curr += 2;
     }
 
     if(len % 2 == 0)
     {
-        array_push(*addr);
+        arrayPush(*addr);
         *addr += 2;
 
-        array_push(0x00);
+        arrayPush(0x00);
     }
 }
 
@@ -149,9 +157,27 @@ int parseCommand(const char* str, CmdStructPtr cmd)
 void parseMacro(uint16_t* addr, const char* text[], int index, int size)
 {
     int i;
+    char *str = NULL;
+    char *pos = NULL;
 
     for(i = index; i < size; i++)
     {
+        str = strdup(text[i]);
+        pos = strchr(str, ':');
+
+        *pos = '\0';
+
+        int value = dictFind(macros, str, -1);
+
+        *pos = ':';
+
+        free(str);
+
+        if(value == -1)
+            continue;
+
+        arraySetValue(value, *addr);
+
         convertAsci(addr, text[i]);
     }
 }

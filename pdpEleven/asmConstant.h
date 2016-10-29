@@ -2,6 +2,8 @@
 #ifndef ASMCONSTANT_H
 #define ASMCONSTANT_H
 
+#include "dictionary.h"
+
 enum SyntaxKeyType
 {
     SKEY_ORIGIN = 0x00,
@@ -43,5 +45,7 @@ typedef struct Cmd
     char param1[32];
     char param2[32];
 } CmdStruct, *CmdStructPtr;
+
+extern dict_t macros;
 
 #endif // ASMCONSTANT_H

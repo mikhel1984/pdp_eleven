@@ -17,7 +17,8 @@ SOURCES += \
     processor.c \
     arraylist.c \
     asmUtils.c \
-    asmParseCommand.c
+    asmParseCommand.c \
+    dictionary.c
 
 HEADERS += pdpeleven.h \
     font.h \
@@ -30,4 +31,5 @@ HEADERS += pdpeleven.h \
     arraylist.h \
     asmParseCommand.h \
     asmConstant.h \
-    asmUtils.h
+    asmUtils.h \
+    dictionary.h

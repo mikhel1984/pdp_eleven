@@ -14,7 +14,9 @@
 
 void convertProgram(int startCode, const char* text[], int currIndex,  int size);
 int parseCommand(const char* str, CmdStructPtr cmd);
-void parseMacro(int startCode, const char* text[], int index, int size);
+void parseMacro(uint16_t* addr, const char* text[], int index, int size);
+
+void convertAsci(uint16_t* addr, const char* str);
 
 /*
  *  Implementation
@@ -69,7 +71,9 @@ void convertProgram(int startCode, const char* text[], int currIndex,  int size)
             parseCommand(text[i] + strlen(synaxKey[SKEY_DONE]), cmd);
             funcConvertCmd[cmd->cmd](cmd, &address);
 
-            parseMacro(address, text, i+1, size);
+            address += 2;
+
+            parseMacro(&address, text, i+1, size);
             break;
         }
 
@@ -89,64 +93,41 @@ void convertProgram(int startCode, const char* text[], int currIndex,  int size)
     array_print();
 }
 
-void convertAsci(const char* src, uint16_t **dst, uint16_t *dstSize)
+void convertAsci(uint16_t* addr, const char* str)
 {
-    const uint16_t startAddr = 02000;
-
-    const char *start = strchr(src, '\"') + 1;
+    const char *start = strchr(str, '\"') + 1;
     const char *end = strchr(start, '\"');
+    const char *curr = start;
 
     uint16_t len = end - start;
-    int flag = 0;
+    uint16_t world = 0;
+
+    while(curr != end)
+    {
+        array_push(*addr);
+        *addr += 2;
+
+        world = *curr;
+
+        if(curr == end - 1)
+        {
+            array_push(world);
+            break;
+        }
+
+        world |= (*(curr+1) << 8);
+        array_push(world);
+
+        curr += 2;
+    }
 
     if(len % 2 == 0)
     {
-        len++;
-        flag = 1;
+        array_push(*addr);
+        *addr += 2;
+
+        array_push(0x00);
     }
-
-    *dst = (uint16_t*)malloc(len * 2 * sizeof(uint16_t));
-
-    int i = 0, j = 0;
-
-    while(start != end)
-    {
-        (*dst)[i] = startAddr + (i*2);
-
-        (*dst)[i+1] = 0;
-        (*dst)[i+1] = *start;
-
-        if(j != len - 1)
-            (*dst)[i+1] |= (*(start+1) << 8);
-        else
-            break;
-
-        i += 2;
-        j += 2;
-        start += 2;
-    }
-
-    if(flag)
-    {
-        (*dst)[len - 1] = startAddr + ((len - 1)*2);
-        (*dst)[len] = 0x00;
-    }
-
-    (*dstSize) = len;
-}
-
-int getOffsetCmd(const char* str)
-{
-    if(strCompare(str, "mov"))
-    {
-        return 4;
-    }
-    else if(strCompare(str, "clr"))
-    {
-        return 2;
-    }
-    else
-        return 2;
 }
 
 int parseCommand(const char* str, CmdStructPtr cmd)
@@ -165,15 +146,13 @@ int parseCommand(const char* str, CmdStructPtr cmd)
     return err;
 }
 
-void parseMacro(int startCode, const char* text[], int index, int size)
+void parseMacro(uint16_t* addr, const char* text[], int index, int size)
 {
     int i;
-    char buffer[128] = "";
 
     for(i = index; i < size; i++)
     {
-        sscanf(text[i], "msga: .string \"%s", buffer);
-        printf("%s\n", buffer);
+        convertAsci(addr, text[i]);
     }
 }
 

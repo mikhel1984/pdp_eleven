@@ -1,7 +1,10 @@
 #include "processor.h"
 #include <stdio.h>
+#include <string.h>
 
 #include "test_program.h"
+
+#define HALT 0
 
 //#define DEBUG_MODE
 
@@ -33,6 +36,32 @@
 
 #define PC_REG   07
 #define REG_NUMBER 8
+
+typedef struct _Instruction {
+    int src;
+    int dst;
+    uint8_t src_val[2];
+    uint8_t dst_val[2];
+    uint8_t *src_ptr;
+    uint8_t *dst_ptr;
+    uint8_t src_ref;
+    uint8_t dst_ref;
+
+    int (*proc)(struct _Instruction*);
+    int (*bproc)(struct _Instruction*);
+    char name[8];
+} Instruction;
+
+void cleanInstruction(Instruction* code) {
+    code->src = code->dst = -1;
+    code->proc = NULL;
+    code->bproc = NULL;
+    code->name[0] = '\0';
+    code->src_ref = code->dst_ref = 1;
+    code->src_ptr = code->dst_ptr = NULL;
+}
+
+
 
 // test
 void print8(uint8_t val) {
@@ -86,19 +115,25 @@ uint8_t flags;
 uint8_t *getMemory(uint16_t address) { return memory_ + address; }
 uint16_t *getRegister(uint8_t ind) { return registers + ind; }
 
-uint16_t nextWord(int inc) {
-    uint16_t *pc = getRegister(PC_REG);
-    if(inc) *pc += 02;
+uint16_t fetchMem() {
+    uint16_t addr = *getRegister(PC_REG);
+    return *((uint16_t*) getMemory(addr));
+}
 
-    uint16_t addr = *pc, mem;
-    mem = *((uint16_t*) getMemory(addr));
+void incrementPC() {
+    *getRegister(PC_REG) += 02;
+}
+
+uint16_t nextWord(int inc) {
+    if(inc) incrementPC();
 
 #ifdef DEBUG_MODE
     printf("%o\t%6o\t", addr, mem);
 #endif
 
-    return mem;
+    return fetchMem();
 }
+
 
 void resetRegisters() {
     int i;
@@ -115,7 +150,6 @@ void resetFlags() {
 // Register mode
 uint16_t *mode_0(uint8_t ind) { return getRegister(ind); }
 uint8_t *mode_0b(uint8_t ind) { return (uint8_t*) getRegister(ind); }
-
 
 
 // Autoincrement mode
@@ -149,7 +183,8 @@ uint8_t* mode_4b(uint8_t ind) {
 
 // Index mode
 uint8_t* mode_6b(uint8_t ind) {
-    uint16_t addr = nextWord(0);
+    incrementPC();
+    uint16_t addr = fetchMem();
     addr += *getRegister(ind);
     return getMemory(addr);
 }
@@ -205,7 +240,8 @@ uint16_t *mode_5pc() {
 
 // Index deferred
 uint8_t *mode_7b(uint8_t ind) {
-    uint16_t addr = nextWord(0);
+    incrementPC();
+    uint16_t addr = fetchMem();
     addr += *getRegister(ind);
     addr = *((uint16_t*) getMemory(addr));
     return getMemory(addr);
@@ -256,212 +292,230 @@ uint8_t* getByte(uint16_t op) {
     return NULL;
 }
 
-uint16_t* toWordPtr(uint16_t op) {
-    uint16_t* ptr16;
-    if(IS_BYTE(op)) {
-        uint8_t* ptr8 = getByte(op);
-        if(((int)ptr8) & 1)
-            ptr16 = (uint16_t*) (ptr8-1);
+int fetchOperands(Instruction *inst) {
+    if(inst->src != -1 && inst->src_ref) {
+        if(inst->bproc) {
+            inst->src_ptr = getByte((uint16_t)inst->src);
+            *(inst->src_val) = *(inst->src_ptr);
+        }
+        else {
+            inst->src_ptr = (uint8_t*) getWord((uint16_t) inst->src);
+            *((uint16_t*) inst->src_val) = *((uint16_t*) inst->src_ptr);
+        }
+    }
+    if(inst->dst != -1 && inst->dst_ref) {
+        if(inst->bproc) {
+            inst->dst_ptr = getByte((uint16_t)inst->dst);
+            *(inst->dst_val) = *(inst->dst_ptr);
+        }
+        else {
+            inst->dst_ptr = (uint8_t*) getWord((uint16_t) inst->dst);
+            *((uint16_t*) inst->dst_val) = *((uint16_t*) inst->dst_ptr);
+        }
+    }
+    return 1;
+}
+
+int writeOperands(Instruction *inst) {
+    if(inst->src != -1 && inst->src_ptr) {
+        if(inst->bproc)
+            *(inst->src_ptr) = *(inst->src_val);
         else
-            ptr16 = (uint16_t*) ptr8;
+            *((uint16_t*) inst->src_ptr) = *((uint16_t*) inst->src_val);
     }
-    else
-        ptr16 = getWord(op);
-
-    return ptr16;
+    if(inst->dst != -1 && inst->dst_ptr) {
+        if(inst->bproc)
+            *(inst->dst_ptr) = *(inst->dst_val);
+        else
+            *((uint16_t*) inst->dst_ptr) = *((uint16_t*) inst->dst_val);
+    }
+    return 1;
 }
 
-// Clear dst
-int _clr(uint16_t op) {
+
+int clr8(Instruction *inst) {
     CLEAR_(_N); SET_(_Z); CLEAR_(_V); CLEAR_(_C);
+    uint8_t *val = (inst->src != -1) ? inst->src_val : inst->dst_val;
+    *val = 0;
+    return 1;
+}
 
-    if(IS_BYTE(op))
-        *getByte(op) = 0;
+int clr16(Instruction *inst) {
+    CLEAR_(_N); SET_(_Z); CLEAR_(_V); CLEAR_(_C);
+    uint16_t *val;
+    if(inst->src != -1)
+        val = (uint16_t*) inst->src_val;
     else
-        *getWord(op) = 0;
+        val = (uint16_t*) inst->dst_val;
 
-    //printf(" -%o- ", *getWord(op));
-
-#ifdef DEBUG_MODE
-    puts("CLR");
-#endif // DEBUG_MODE
+    *val = 0;
     return 1;
 }
 
-// Complement dst
-int _com(uint16_t op) {
-    CLEAR_(_V); SET_(_C);
-
-    uint16_t *wPtr = toWordPtr(op);
-
-    if(IS_BYTE(op)) {
-        uint8_t tmp = *getByte(op);
-        tmp = ~tmp;
-        *getByte(op) = tmp;
-    }
-    else {
-        uint16_t tmp = *getWord(op);
-        tmp = ~tmp;
-        *getWord(op) = tmp;
-    }
-
-    SET_IF(_Z, (*wPtr)==0);
-    SET_IF(_N, IS_BYTE(*wPtr));
-
-#ifdef DEBUG_MODE
-    puts("COM");
-#endif // DEBUG_MODE
+int inc8(Instruction *inst) {
+    uint8_t *val = (inst->src != -1) ? inst->src_val : inst->dst_val;
+    SET_IF(_V, *val == 0177);
+    *val += 1;
+    SET_IF(_N, (*val) >> SHIFT7);
+    SET_IF(_Z, *val == 0);
     return 1;
 }
 
-// Increment dst
-int _inc(uint16_t op) {
-    uint16_t *wPtr = toWordPtr(op);
-    SET_IF(_V, *wPtr==077777);
-
-    if(IS_BYTE(op))
-        *getByte(op) += 1;
+int inc16(Instruction *inst) {
+    uint16_t *val;
+    if(inst->src != -1)
+        val = (uint16_t*) inst->src_val;
     else
-        *getWord(op) += 1;
+        val = (uint16_t*) inst->dst_val;
 
-    SET_IF(_Z, (*wPtr)==0);
-    SET_IF(_N, IS_BYTE(*wPtr));
-
-#ifdef DEBUG_MODE
-    puts("INC");
-#endif // DEBUG_MODE
+    SET_IF(_V, *val == 077777);
+    *val += 1;
+    SET_IF(_N, IS_BYTE(*val));
+    SET_IF(_Z, *val == 0);
     return 1;
 }
 
-// Decrement dst
-int _dec(uint16_t op) {
-    uint16_t *wPtr = toWordPtr(op);
-    SET_IF(_V, *wPtr==BITMAX);
-
-    if(IS_BYTE(op))
-        *getByte(op) -= 1;
-    else
-        *getWord(op) -= 1;
-
-    SET_IF(_Z, *wPtr==0);
-    SET_IF(_N, IS_BYTE(*wPtr));
-
-#ifdef DEBUG_MODE
-    puts("DEC");
-#endif // DEBUG_MODE
-    return 1;
-}
-
-// Negate dst
-int _neg(uint16_t op) {
-    uint16_t *wPtr = toWordPtr(op);
-
-    if(IS_BYTE(op)) {
-        uint8_t* tmp = getByte(op);
-        //*tmp = -(*tmp);
-        *tmp = inv_code8(*tmp);
-    }
-    else {
-        uint16_t* tmp = getWord(op);
-        //*tmp = -(*tmp);
-        *tmp = inv_code16(*tmp);
-    }
-
-    SET_IF(_N, IS_BYTE(*wPtr));
-    SET_IF(_Z, *wPtr==0);
-    SET_IF(_V, *wPtr==BITMAX);  // need to correct
-    SET_IF(_C, *wPtr!=0);
-
-#ifdef DEBUG_MODE
-    puts("NEG");
-#endif // DEBUG_MODE
-    return 1;
-}
-
-// Test dst
-int _tst(uint16_t op) {
-    uint16_t *wPtr = toWordPtr(op);
-
-    CLEAR_(_V); CLEAR_(_V);
-    SET_IF(_N, IS_BYTE(*wPtr));
-    SET_IF(_Z, *wPtr==0);
-
-#ifdef DEBUG_MODE
-    puts("TST");
-#endif // DEBUG_MODE
-    return 1;
-}
-
-int _mov(uint16_t op) {
+int mov8(Instruction* inst) {
     CLEAR_(_V);
-    if(IS_BYTE(op)) {
-        uint8_t *dst = getByte(op);
-        uint8_t *src = getByte(op >> 06);
-        *dst = *src;
-        printf(" %c ", (char) *src);
-        SET_IF(_Z, *src == 0);
-        SET_IF(_N, (*src) >> SHIFT7);
-    }
-    else {
-        uint16_t *dst = getWord(op);
-        uint16_t *src = getWord(op >> 06);
-        *dst = *src;        
-        SET_IF(_Z, *src == 0);
-        SET_IF(_N, IS_BYTE(*src));
-    }
-#ifdef DEBUG_MODE
-    puts(IS_BYTE(op) ? "MOVB" : "MOV");
-#endif // DEBUG_MODE
+    *(inst->dst_val) = *(inst->src_val);
+    SET_IF(_Z, *(inst->src_val) == 0);
+    SET_IF(_N, *(inst->src_val) >> SHIFT7);
     return 1;
 }
 
-int _beq(uint16_t op) {
-#ifdef DEBUG_MODE
-    puts("BEQ");
-#endif // DEBUG_MODE
+int mov16(Instruction *inst) {
+    uint16_t *src = (uint16_t*) inst->src_val, *dst = (uint16_t*) inst->dst_val;
+    //printf("mov %o to %o\n", *src, *dst);
+    CLEAR_(_V);
+    *dst = *src;
+    SET_IF(_Z, *src == 0);
+    SET_IF(_N, IS_BYTE(*src));
+    return 1;
+}
+
+int beq8(Instruction *inst) {
     if(GET_(_Z)) {
+        uint8_t val = (inst->src != -1) ? (uint8_t) inst->src : (uint8_t) inst->dst;
         uint16_t *pc = getRegister(PC_REG);
-        uint8_t offset8 = (uint8_t) op;
-        uint16_t offset = convert16t(offset8);
-        *pc += 02;
-        *pc += offset;
-        *pc += offset;
+        uint16_t offset = convert16t(val);
+        *pc += 02 + offset + offset;
         return 0;
     }
     return 1;
 }
 
-int _br(uint16_t op) {
+int br8(Instruction *inst) {
+    uint8_t val = (inst->src != -1) ? (uint8_t) inst->src : (uint8_t) inst->dst;
     uint16_t *pc = getRegister(PC_REG);
-    uint8_t offset8 = (uint8_t) op;
-    uint16_t offset = convert16t(offset8);
-    *pc += 02;
-    *pc += offset;
-    *pc += offset;
-
-#ifdef DEBUG_MODE
-    puts("BR");
-#endif // DEBUG_MODE
+    uint16_t offset = convert16t(val);
+    *pc += 02 + offset + offset;
     return 0;
 }
 
+Instruction decode(uint16_t opcode) {
+    Instruction code;
+    cleanInstruction(&code);
 
+    if(opcode < 0001000) {
+        code.bproc = br8;
+        code.src = (uint8_t) opcode;
+        code.src_ref = code.dst_ref = 0;
+        strcpy(code.name, "BR");
+    }
+    else if(opcode < 0001500) {
+        code.bproc = beq8;
+        code.src = (uint8_t) opcode;
+        code.src_ref = code.dst_ref = 0;
+        strcpy(code.name, "BEQ");
+    }
+    else if(opcode < 0005100) {
+        code.proc = clr16;
+        code.dst = opcode & 077;
+        strcpy(code.name, "CLR");
+    }
+    else if(opcode < 0005300) {
+        code.proc = inc16;
+        code.dst = opcode & 077;
+        strcpy(code.name, "INC");
+    }
+    else if(opcode < 0020000) {
+        code.proc = mov16;
+        code.dst = opcode & 077;
+        code.src = (opcode >> 06) & 077;
+        strcpy(code.name, "MOV");
+    }
+    else if(opcode < 0105100) {
+        code.bproc = clr8;
+        code.dst = opcode & 077;
+        strcpy(code.name, "CLRB");
+    }
+    else if(opcode < 0105300) {
+        code.bproc = inc8;
+        code.dst = opcode & 077;
+        strcpy(code.name, "INCB");
+    }
+    else if(opcode < 0120000) {
+        code.bproc = mov8;
+        code.dst = opcode & 077;
+        code.src = (opcode >> 06) & 077;
+        strcpy(code.name, "MOVB");
+    }
 
-int eval(uint16_t opcode) {
-
-    if((opcode >= 0005000 && opcode < 0005100) || (opcode >= 0105000 && opcode < 0105100))
-    { return _clr(opcode); } // CLR
-    else if((opcode >= 0005200 && opcode < 0005300) || (opcode >= 0105200 && opcode < 0105300))
-    { return _inc(opcode); } // INC
-    else if((opcode >= 0010000 && opcode < 0020000) || (opcode >= 0110000 && opcode < 0120000))
-    { return _mov(opcode); } // MOV
-    else if(opcode >= 0001400 && opcode < 0001500)
-    { return _beq(opcode); } // BEQ
-    else if(opcode >= 0000400 && opcode < 0001000)
-    { return _br(opcode); }  // BR
-
-    return 1;
+    return code;
 }
+
+int evalInstruction(Instruction *inst) {
+    if(inst->bproc)
+        return inst->bproc(inst);
+
+    return inst->proc(inst);
+}
+
+int evalOneCircle(int *tact) {
+    uint16_t opcode;
+    Instruction instruction;
+    int use_inc;
+
+    (*tact) ++;
+    opcode = fetchMem();
+
+    (*tact) ++;
+    if(opcode == HALT) return -1;
+    instruction = decode(opcode);
+
+    //printf("%d %o %s\n", *getRegister(PC_REG), opcode, instruction.name);
+
+    (*tact)++;
+    fetchOperands(&instruction);
+
+    (*tact)++;
+    use_inc = evalInstruction(&instruction);
+
+    (*tact)++;
+    writeOperands(&instruction);
+
+    return use_inc;
+}
+
+int evalCode() {
+    int tact = 0, increment = 1;
+
+    resetFlags();
+    resetRegisters();
+
+    while(1) {
+        increment = evalOneCircle(&tact);
+
+        if(increment == -1) break;
+
+        if(increment)
+            incrementPC();
+    }
+
+    return tact;
+}
+
+
 
 void printRegisters() {
     printf("\nR0:%o R1:%o R2:%o R3:%o R4:%o R5:%o R6:%o R7:%o\n",
@@ -469,42 +523,42 @@ void printRegisters() {
             registers[5], registers[6], registers[7]);
 }
 
-void testProcessor() {
-
-    uint16_t opcode;
-    int step = 0, inc_address = 0, i;
+int testProcessor2() {
+    int tact = 0, increment = 1;
 
     resetFlags();
     resetRegisters();
 
     // test string(s)
     uint8_t *mem = (uint8_t*) programm_;
+    int i;
     for(i = 20; i < 108; ++i) {
         printf("%c", (char) mem[i]);
     }
     printf("\n");
 
-    opcode = nextWord(inc_address);
     printRegisters();
 
+    int k;
+    for(k = 0; k < 200; ++k) {
 
-    //for(step = 0; step < 170; ++step) {
-    while(opcode != HALT) {
-    //while((opcode = nextWord()) != HALT) {
-
-        inc_address = eval(opcode);
+    //while(1) {
+        increment = evalOneCircle(&tact);
         printRegisters();
-        opcode = nextWord(inc_address);
-        //printf("\n");
-        step ++;
+
+        if(increment == -1) break;
+
+        if(increment)
+            incrementPC();
     }
-    // after work
-    printf("\nNumber of circles: %d\n", step);
+
+    printf("\nNumber of tacts: %d\n", tact);
     printf("\n");
     for(i = 20; i < 108; ++i) {
         printf("%c", (char) mem[i]);
     }
     printf("\n");
 
+    return tact;
 }
 

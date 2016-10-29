@@ -3,14 +3,11 @@
 
 #include <stdint.h>
 
-#define HALT 0
 
-int eval(uint16_t opcode);
+int evalCode();
+int evalOneCircle(int *tact);
 
-//uint16_t nextWord();
-
-void testProcessor();
-
+int testProcessor2();
 
 
 

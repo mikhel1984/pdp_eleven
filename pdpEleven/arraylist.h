@@ -11,6 +11,7 @@ extern uint16_t arraySize(void);
 
 extern uint16_t arrayCurrIndex();
 extern void arraySetValue(uint16_t index, uint16_t value);
+extern uint16_t arrayGetValue(uint16_t index);
 
 extern uint16_t arrayPrint(void);
 

@@ -31,6 +31,10 @@ void arraySetValue(uint16_t index, uint16_t value)
     array[index] = value;
 }
 
+uint16_t arrayGetValue(uint16_t index){
+    return array[index];
+}
+
 uint16_t arrayPrint(void)
 {
     int i;

@@ -3,6 +3,7 @@
 #include "asm.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <arraylist.h>
 
 int main()
 {
@@ -24,6 +25,8 @@ int main()
     };
 
     assembly(buf, 13);
+
+    arrayPrint();
 
     return 0;
 }

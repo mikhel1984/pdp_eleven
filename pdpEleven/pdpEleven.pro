@@ -32,4 +32,5 @@ HEADERS += pdpeleven.h \
     asmParseCommand.h \
     asmConstant.h \
     asmUtils.h \
-    dictionary.h
+    dictionary.h \
+    opcodes.h

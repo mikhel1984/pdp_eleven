@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+void prepareProcessor();
+
 
 int evalCode();
 int evalOneCircle(int *tact);

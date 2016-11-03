@@ -46,7 +46,7 @@ int assembly(const char* text[], int size)
         else if(strStartWith(str, synaxKey[SKEY_ORIGIN]))
         {
             str = str + strlen(synaxKey[SKEY_ORIGIN]);
-            sscanf(str, "%ol", &startCode);
+            sscanf(str, "%ho", &startCode);
             printf("\nStart code: %0o\n", startCode);
         }
         else if(strStartWith(str, synaxKey[SKEY_START]))

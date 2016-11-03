@@ -26,7 +26,5 @@ int main()
 
     assembly(buf, 13);
 
-    arrayPrint();
-
     return 0;
 }

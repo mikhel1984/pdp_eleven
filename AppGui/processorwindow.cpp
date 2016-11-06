@@ -58,70 +58,73 @@ void ProcessorWindow::slotResetButtonClicked()
 }
 
 const char** split(const char* asmBuffer){
-//    int lines = 0;
-//    for (char* counter = (char *)asmBuffer; *counter != '\0'; counter++){
-//        if(*counter=='\n')
-//            lines++;
-//    }
+    int lines = 0;
+    for (char* counter = (char *)asmBuffer; *counter != '\0'; counter++){
+        if(*counter=='\n')
+            lines++;
+    }
 
-//    char *buf[lines];
-//    char* pch = NULL;
+//    const char *buf[lines];
 
-//    pch = strtok((char *)asmBuffer, "\n");
+    const char **buf = (const char **)malloc(lines * sizeof(const char *));
+    char* pch = NULL;
 
-//    int li = 0;
-//    while (pch != NULL)
-//    {
-//        printf("%s\n", pch);
-//        buf[li++] = pch;
-//        pch = strtok(NULL, "\n");
-//    }
+    pch = strtok((char *)asmBuffer, "\n");
 
-        const char *buf[] = {
-            "; Program to copy and determine length of string",
-            ".origin 1000",
-            "start: mov #msga, r1",
-            "   mov #msgb, r2",
-            "   clr r0",
-            "l1: movb (r1)+, (r2)+",
-            "   beq done",
-            "   inc r0",
-            "   br l1",
-            "done: halt",
-            "msga: .string \"A string whose length is to be determined\"",
-            "msgb: .string \"Different string that should get overwritten\"",
-            ".end start"
-        };
+    int li = 0;
+    while (pch != NULL)
+    {
+        printf("%s\n", pch);
+        buf[li++] = pch;
+        pch = strtok(NULL, "\n");
+    }
+
+//        const char *buf[] = {
+//            "; Program to copy and determine length of string",
+//            ".origin 1000",
+//            "start:",
+//            "mov #msga, r1",
+//            "mov #msgb, r2",
+//            "clr r0",
+//            "l1: movb (r1)+, (r2)+",
+//            "beq done",
+//            "inc r0",
+//            "br l1",
+//            "done: halt",
+//            "msga: .string \"A string whose length is to be determined\"",
+//            "msgb: .string \"Different string that should get overwritten\"",
+//            ".end start"
+//        };
 
     return buf;
 }
 
 void ProcessorWindow::on_assemblyButton_clicked()
 {
-//    QString asmText = ui->assemblyEditor->toPlainText();
-//    const char* asmBuffer = asmText.toLocal8Bit().constData();
+    QString asmText = ui->assemblyEditor->toPlainText();
+    const char* asmBuffer = asmText.toLocal8Bit().constData();
 
-//    const char** buf = split(asmBuffer);
+    const char** buf = split(asmBuffer);
 
 //    uint16_t *result = NULL;
 //    uint16_t resultSize = 0;
 
-    const char *buf[] = {
-        "; Program to copy and determine length of string",
-        ".origin 1000",
-        "start:",
-        "mov #msga, r1",
-        "mov #msgb, r2",
-        "clr r0",
-        "l1: movb (r1)+, (r2)+",
-        "beq done",
-        "inc r0",
-        "br l1",
-        "done: halt",
-        "msga: .string \"A string whose length is to be determined\"",
-        "msgb: .string \"Different string that should get overwritten\"",
-        ".end start"
-    };
+//    const char *buf[] = {
+//        "; Program to copy and determine length of string",
+//        ".origin 1000",
+//        "start:",
+//        "mov #msga, r1",
+//        "mov #msgb, r2",
+//        "clr r0",
+//        "l1: movb (r1)+, (r2)+",
+//        "beq done",
+//        "inc r0",
+//        "br l1",
+//        "done: halt",
+//        "msga: .string \"A string whose length is to be determined\"",
+//        "msgb: .string \"Different string that should get overwritten\"",
+//        ".end start"
+//    };
 
     assembly(buf, 13);
 
@@ -143,7 +146,7 @@ void ProcessorWindow::on_assemblyButton_clicked()
         uint16_t addr = arrayGetValue(i);
         uint16_t instr = arrayGetValue(i+1);
 
-        std::snprintf(outbuf+(2*6+2)*i/2, 2*6+2, "%o %o\n", addr, instr);
+        std::snprintf(outbuf+(2*6+2)*i/2, 2*6+2, "%o %06o\n", addr, instr);
     }
 
     for (int i = 0; i < arraySize(); i+=2) {

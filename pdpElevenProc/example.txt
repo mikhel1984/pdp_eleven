@@ -1,0 +1,74 @@
+; Program to copy and determine length of string
+.origin 1000
+start: mov #msga, r1
+   mov #msgb, r2
+   clr r0
+l1: movb (r1)+, (r2)+
+   beq done
+   inc r0
+   br l1
+done: halt
+msga: .string "A string whose length is to be determined"
+msgb: .string "Different string that should get overwritten"
+.end start
+
+
+; Program to copy and determine length of string
+                    .origin 1000
+001000  012701      start: mov #msga, r1
+001002  001024
+001004  012702         mov #msgb, r2
+001006  001076
+001010  005000         clr r0
+001012  112122      l1: movb (r1)+, (r2)+
+001014  001402         beq done
+001016  005200         inc r0
+001020  000774         br l1
+001022  000000      done: halt
+                    msga: .string "A string whose length is to be determined"
+001024  020101
+001026  072163
+001030  064562
+001032  063556
+001034  073440
+001036  067550
+001040  062563
+001042  066040
+001044  067145
+001046  072147
+001050  020150
+001052  071551
+001054  072040
+001056  020157
+001060  062542
+001062  062040
+001064  072145
+001066  071145
+001070  064555
+001072  062556
+001074  000144
+                    msgb: .string "Different string that should get overwritten"
+001076  064504
+001100  063146
+001102  071145
+001104  067145
+001106  020164
+001110  072163
+001112  064562
+001114  063556
+001116  072040
+001120  060550
+001122  020164
+001124  064163
+001126  072557
+001130  062154
+001132  063440
+001134  072145
+001136  067440
+001140  062566
+001142  073562
+001144  064562
+001146  072164
+001150  067145
+001152  000000
+                    .end start

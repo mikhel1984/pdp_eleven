@@ -8,12 +8,14 @@
 #include <QTimer>
 #include <cstdio>
 #include <cstring>
+#include <QTextStream>
 
 extern "C"
 {
     #include "memory.h"
     #include "asm.h"
     #include "arraylist.h"
+    #include "processor.h"
 }
 
 ProcessorWindow::ProcessorWindow(QWidget *parent)
@@ -41,21 +43,6 @@ ProcessorWindow::~ProcessorWindow()
 /*
  *  Public slot
  */
-
-void ProcessorWindow::slotRunButtonClicked()
-{
-    ui->txtEditor->append(QString("Button 'RUN' is pressed"));
-}
-
-void ProcessorWindow::slotStopButtonClicked()
-{
-    ui->txtEditor->append(QString("Button 'STEP' is pressed"));
-}
-
-void ProcessorWindow::slotResetButtonClicked()
-{
-    ui->txtEditor->append(QString("Button 'RESET' is pressed"));
-}
 
 const char** split(const char* asmBuffer){
     int lines = 0;
@@ -128,16 +115,6 @@ void ProcessorWindow::on_assemblyButton_clicked()
 
     assembly(buf, 13);
 
-//    QString machinCodeStr;
-//    char* outbuf = (char *)malloc((2*6+2)*resultSize/2);
-//    for (int i = 0; i < resultSize; i+=2) {
-//        std::snprintf(outbuf+(2*6+2)*i/2, 2*6+2, "%o %o\n", result[i],result[i+1]);
-//    }
-
-//    for (int i = 0; i < resultSize; i+=2) {
-//        machinCodeStr.append(outbuf+(2*6+2)*i/2);
-//    }
-
     QString machinCodeStr;
 
     char* outbuf = (char *)malloc((2*6+2)*arraySize()/2);
@@ -155,4 +132,22 @@ void ProcessorWindow::on_assemblyButton_clicked()
 
     ui->machineCodeEditor->clear();
     ui->machineCodeEditor->append(machinCodeStr);
+}
+
+void ProcessorWindow::on_runButton_clicked()
+{
+    ui->txtEditor->append(QString("Button 'RUN' is pressed"));
+    evalCode();
+
+    QString r0;
+    QTextStream(&r0) << "R0: " << *getRegister(0);
+    ui->r0label->setText(r0);
+
+    QString r1;
+    QTextStream(&r1) << "R1: " << *getRegister(1);
+    ui->r1label->setText(r1);
+
+    QString r2;
+    QTextStream(&r2) << "R2: " << *getRegister(2);
+    ui->r2label->setText(r2);
 }

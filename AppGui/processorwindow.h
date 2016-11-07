@@ -22,11 +22,9 @@ public:
 private:
 
 private slots:
-    void slotRunButtonClicked();
-    void slotStopButtonClicked();
-    void slotResetButtonClicked();
-
     void on_assemblyButton_clicked();
+
+    void on_runButton_clicked();
 
 private:
     QGraphicsScene *gScene;

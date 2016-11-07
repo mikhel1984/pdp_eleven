@@ -4,8 +4,9 @@
 #include <stdint.h>
 
 
-int evalCode();
-int evalOneCircle(int *tact);
+extern int evalCode();
+extern int evalOneCircle(int *tact);
+extern uint16_t *getRegister(uint8_t ind);
 
 int testProcessor2();
 

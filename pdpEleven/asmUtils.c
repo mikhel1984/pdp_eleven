@@ -81,6 +81,10 @@ int convertCmdType(const char* str)
     {
         return  CMD_HALT;
     }
+    else if(strCompare(str, "beq"))
+    {
+        return CMD_BEQ;
+    }
     else
         return CMD_UNKNOWN;
 }

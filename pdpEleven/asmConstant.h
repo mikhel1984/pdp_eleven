@@ -31,11 +31,11 @@ static const char* regName[REG_TOTAL] = {
 
 enum CmdType
 {
-    CMD_MOV = 0x00, CMD_CLR, CMD_BR, CMD_MOVB, CMD_INC,  CMD_HALT, CMD_TOTAL, CMD_UNKNOWN = 0x00
+    CMD_MOV = 0x00, CMD_CLR, CMD_BR, CMD_MOVB, CMD_BEQ, CMD_INC, CMD_HALT, CMD_TOTAL, CMD_UNKNOWN
 };
 
 static const char* cmdName[CMD_TOTAL] = {
-    "mov", "clr", "br", "movb", "inc", "halt"
+    "mov", "clr", "br", "movb", "beq", "inc", "halt"
 };
 
 typedef struct Cmd

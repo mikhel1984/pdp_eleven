@@ -12,11 +12,13 @@
 
 dict_t macros = NULL;
 
+uint16_t address = 0;
+
 /*
  *  Defenition
  */
 
-void convertProgram(int startCode, const char* text[], int currIndex,  int size);
+void convertProgram(const char* text[], int currIndex,  int size);
 int parseCommand(const char* str, CmdStructPtr cmd);
 int getValueFromDictionary(const char* srcStr);
 void parseMacro(uint16_t* addr, const char* text[], int index, int size);
@@ -47,12 +49,13 @@ int assembly(const char* text[], int size)
         {
             str = str + strlen(synaxKey[SKEY_ORIGIN]);
             sscanf(str, "%ho", &startCode);
+            address = startCode;
             printf("\nStart code: %0o\n", startCode);
         }
         else if(strStartWith(str, synaxKey[SKEY_START]))
         {
             text[i] = text[i] + strlen(synaxKey[SKEY_START]);
-            convertProgram(startCode, text, i, size);
+            convertProgram(text, i, size);
         }
     }
 
@@ -61,7 +64,7 @@ int assembly(const char* text[], int size)
     return TRUE;
 }
 
-void convertProgram(int startCode, const char* text[], int currIndex,  int size)
+void convertProgram(const char* text[], int currIndex,  int size)
 {
     int i;
 
@@ -69,7 +72,6 @@ void convertProgram(int startCode, const char* text[], int currIndex,  int size)
     CmdStructPtr cmd = NULL;
 
     int sizeCmds = 0;
-    uint16_t address = startCode;
     const char* str = NULL;
 
     for(i = currIndex; i < size; i++)
@@ -141,13 +143,49 @@ void convertAsci(uint16_t* addr, const char* str)
     }
 }
 
+void pushMacroToDictionary(const char* srcStr)
+{
+    char *str = strdup(srcStr);
+    int value = 0;
+
+    char* pos = strchr(str, ':');
+    *pos = '\0';
+
+    dictAdd(macros, str, address);
+
+    *pos = ':';
+    free(str);
+}
+
+const char* extractMacro(const char* str)
+{
+    int i;
+    int len = strlen(str);
+
+    for(i=0; i < len; i++)
+    {
+        if(str[i] == ':')
+        {
+            pushMacroToDictionary(str);
+            return str+i+1;
+        }
+    }
+
+    return str;
+}
+
 int parseCommand(const char* str, CmdStructPtr cmd)
 {
+    int err = 0;
+
     char cmdName[32] = "";
     char param1[32] = "";
     char param2[32] = "";
 
-    int err = sscanf(str, "%s %[^','], %s",
+    str = extractMacro(str);
+    str = strTrim(str);
+
+    err = sscanf(str, "%s %[^','], %s",
                      cmdName, param1, param2);
 
     cmd->cmd = convertCmdType(cmdName);

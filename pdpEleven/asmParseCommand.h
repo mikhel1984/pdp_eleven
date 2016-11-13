@@ -9,12 +9,14 @@ extern void pushCmdMov(CmdStructPtr cmd, uint16_t* startAddress);
 extern void pushCmdClr(CmdStructPtr cmd, uint16_t* startAddress);
 extern void pushCmdBr(CmdStructPtr cmd, uint16_t* startAddress);
 extern void pushCmdMovb(CmdStructPtr cmd, uint16_t* startAddress);
+extern void pushCmdBeq(CmdStructPtr cmd, uint16_t* startAddress);
 extern void pushCmdInc(CmdStructPtr cmd, uint16_t* startAddress);
 extern void pushCmdHalt(CmdStructPtr, uint16_t* startAddress);
 
 typedef void (*FuncConvertCmd)(CmdStructPtr cmd, uint16_t* startAddress);
+
 static const FuncConvertCmd funcConvertCmd[CMD_TOTAL] = {
-    &pushCmdMov, &pushCmdClr, &pushCmdBr, &pushCmdMovb, &pushCmdInc, &pushCmdHalt
+    &pushCmdMov, &pushCmdClr, &pushCmdBr, &pushCmdMovb, &pushCmdBeq, &pushCmdInc, &pushCmdHalt
 };
 
 #endif // ASMPARSECOMMAND_H

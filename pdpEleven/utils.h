@@ -12,7 +12,7 @@ static BOOL strStartWith(const char* str1, const char* str2)
 
 static BOOL strCompare(const char* s1, const char* s2)
 {
-    return (strncmp(s1, s2, strlen(s2)) == 0) ? TRUE : FALSE;
+    return (strcmp(s1, s2) == 0) ? TRUE : FALSE;
 }
 
 static const char* strTrim(const char* str)

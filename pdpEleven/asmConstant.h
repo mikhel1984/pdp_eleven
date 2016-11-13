@@ -3,22 +3,7 @@
 #define ASMCONSTANT_H
 
 #include "dictionary.h"
-
-enum SyntaxKeyType
-{
-    SKEY_ORIGIN = 0x00,
-    SKEY_START,
-    SKEY_DONE,
-    SKEY_END,
-    SKEY_TOTAL
-};
-
-static const char* synaxKey[SKEY_TOTAL] = {
-    ".origin",
-    "start:",
-    "done: ",
-    ".end"
-};
+#include "common.h"
 
 enum RegType
 {
@@ -27,15 +12,6 @@ enum RegType
 
 static const char* regName[REG_TOTAL] = {
     "r0", "r1", "r2", "r3", "r4", "r5", "r6"
-};
-
-enum CmdType
-{
-    CMD_MOV = 0x00, CMD_CLR, CMD_BR, CMD_MOVB, CMD_BEQ, CMD_INC, CMD_HALT, CMD_TOTAL, CMD_UNKNOWN
-};
-
-static const char* cmdName[CMD_TOTAL] = {
-    "mov", "clr", "br", "movb", "beq", "inc", "halt"
 };
 
 typedef struct Cmd

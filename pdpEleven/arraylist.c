@@ -35,7 +35,7 @@ uint16_t arrayGetValue(uint16_t index){
     return array[index];
 }
 
-uint16_t arrayPrint(void)
+void arrayPrint(void)
 {
     int i;
 

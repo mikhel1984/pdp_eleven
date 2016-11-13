@@ -82,7 +82,7 @@ int convertCmdType(const char* str)
         return  CMD_HALT;
     }
     else
-        return 2;
+        return CMD_UNKNOWN;
 }
 
 int getRegAddr(const char* name)

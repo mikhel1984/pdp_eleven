@@ -18,8 +18,8 @@ dict_t macros = NULL;
 
 void convertProgram(int startCode, const char* text[], int currIndex,  int size);
 int parseCommand(const char* str, CmdStructPtr cmd);
+int getValueFromDictionary(const char* srcStr);
 void parseMacro(uint16_t* addr, const char* text[], int index, int size);
-
 void convertAsci(uint16_t* addr, const char* str);
 
 /*
@@ -37,7 +37,7 @@ int assembly(const char* text[], int size)
 
     for(i = 0; i < size; i++)
     {
-        str = text[i];
+        str = strTrim(text[i]);
 
         if((str[0] == ';'))
         {
@@ -51,7 +51,8 @@ int assembly(const char* text[], int size)
         }
         else if(strStartWith(str, synaxKey[SKEY_START]))
         {
-            convertProgram(startCode, text, i+1, size);
+            text[i] = text[i] + strlen(synaxKey[SKEY_START]);
+            convertProgram(startCode, text, i, size);
         }
     }
 
@@ -69,6 +70,7 @@ void convertProgram(int startCode, const char* text[], int currIndex,  int size)
 
     int sizeCmds = 0;
     uint16_t address = startCode;
+    const char* str = NULL;
 
     for(i = currIndex; i < size; i++)
     {
@@ -85,7 +87,8 @@ void convertProgram(int startCode, const char* text[], int currIndex,  int size)
             break;
         }
 
-        parseCommand(text[i], cmd);
+        str = strTrim(text[i]);
+        parseCommand(str, cmd);
 
         funcConvertCmd[cmd->cmd](cmd, &address);
 
@@ -154,26 +157,35 @@ int parseCommand(const char* str, CmdStructPtr cmd)
     return err;
 }
 
+int getValueFromDictionary(const char* srcStr)
+{
+    char *str = strdup(srcStr);
+    int value = 0;
+
+    char* pos = strchr(str, ':');
+    *pos = '\0';
+
+    value = dictFind(macros, str, -1);
+
+    *pos = ':';
+    free(str);
+
+    return value;
+}
 
 void parseMacro(uint16_t* addr, const char* text[], int index, int size)
 {
     int i;
     char *str = NULL;
-    char *pos = NULL;
+    int value = 0;
 
     for(i = index; i < size; i++)
     {
-        str = strdup(text[i]);
-        pos = strchr(str, ':');
+        str = strTrim(text[i]);
+        if(strStartWith(str, synaxKey[SKEY_END]) == TRUE)
+            break;
 
-        *pos = '\0';
-
-        int value = dictFind(macros, str, -1);
-
-        *pos = ':';
-
-        free(str);
-
+        value = getValueFromDictionary(str);
         if(value == -1)
             continue;
 

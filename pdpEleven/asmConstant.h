@@ -17,7 +17,7 @@ static const char* synaxKey[SKEY_TOTAL] = {
     ".origin",
     "start:",
     "done: ",
-    "end: "
+    ".end"
 };
 
 enum RegType

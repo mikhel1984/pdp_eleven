@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstring>
 #include <QTextStream>
+#include <iostream>
 
 extern "C"
 {
@@ -40,79 +41,50 @@ ProcessorWindow::~ProcessorWindow()
     delete ui;
 }
 
-/*
- *  Public slot
- */
 
-const char** split(const char* asmBuffer){
-    int lines = 0;
-    for (char* counter = (char *)asmBuffer; *counter != '\0'; counter++){
-        if(*counter=='\n')
-            lines++;
-    }
+const char** split(QString text, int &size){
+    QStringList qstrList = text.split('\n');
 
-//    const char *buf[lines];
+    const char **buf = (const char **)malloc(qstrList.size() * sizeof(const char *));
 
-    const char **buf = (const char **)malloc(lines * sizeof(const char *));
-    char* pch = NULL;
-
-    pch = strtok((char *)asmBuffer, "\n");
-
-    int li = 0;
-    while (pch != NULL)
+    size = qstrList.size();
+    for (int i = 0; i < qstrList.size(); ++i)
     {
-        printf("%s\n", pch);
-        buf[li++] = pch;
-        pch = strtok(NULL, "\n");
+        QByteArray qarr = qstrList.at(i).toLocal8Bit();
+
+        char *str = new char[qarr.size() + 1];
+        strcpy(str, qarr.data());
+        std::cout << str << std::endl;
+        buf[i] = str;
     }
-
-//        const char *buf[] = {
-//            "; Program to copy and determine length of string",
-//            ".origin 1000",
-//            "start:",
-//            "mov #msga, r1",
-//            "mov #msgb, r2",
-//            "clr r0",
-//            "l1: movb (r1)+, (r2)+",
-//            "beq done",
-//            "inc r0",
-//            "br l1",
-//            "done: halt",
-//            "msga: .string \"A string whose length is to be determined\"",
-//            "msgb: .string \"Different string that should get overwritten\"",
-//            ".end start"
-//        };
-
     return buf;
 }
 
 void ProcessorWindow::on_assemblyButton_clicked()
 {
-    QString asmText = ui->assemblyEditor->toPlainText();
-    const char* asmBuffer = asmText.toLocal8Bit().constData();
+    QString asmText = ui->asmTextEdit->toPlainText();
 
-    const char** buf = split(asmBuffer);
+    int length;
+    const char** buf = split(asmText, length);
 
-//    uint16_t *result = NULL;
-//    uint16_t resultSize = 0;
 
 //    const char *buf[] = {
 //        "; Program to copy and determine length of string",
 //        ".origin 1000",
 //        "start: mov #msga, r1",
-//        "mov #msgb, r2",
-//        "clr r0",
+//        "  mov #msgb, r2",
+//        "  clr r0",
 //        "l1: movb (r1)+, (r2)+",
-//        "beq done",
-//        "inc r0",
-//        "br l1",
+//        "  beq done",
+//        "  inc r0",
+//        "  br l1",
 //        "done: halt",
 //        "msga: .string \"A string whose length is to be determined\"",
 //        "msgb: .string \"Different string that should get overwritten\"",
 //        ".end start"
 //    };
 
-    assembly(buf, 13);
+    assembly(buf, length);
 
     QString machinCodeStr;
 

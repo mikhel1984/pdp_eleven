@@ -452,7 +452,7 @@ int evalOneCircle(int *tact) {
     instruction = decode(opcode);
     if(instruction.index == OP_HALT) return -1;
 
-    //printf("%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
+    printf("%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
 
     (*tact)++;
     fetchOperands(&instruction);

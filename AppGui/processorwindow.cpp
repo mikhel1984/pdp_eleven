@@ -99,8 +99,7 @@ void ProcessorWindow::on_assemblyButton_clicked()
 //    const char *buf[] = {
 //        "; Program to copy and determine length of string",
 //        ".origin 1000",
-//        "start:",
-//        "mov #msga, r1",
+//        "start: mov #msga, r1",
 //        "mov #msgb, r2",
 //        "clr r0",
 //        "l1: movb (r1)+, (r2)+",

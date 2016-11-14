@@ -2,25 +2,31 @@
 #include "asm.h"
 #include "utils.h"
 #include "arraylist.h"
-#include "asmparsecommand.h"
 
 #include "asmConstant.h"
-#include "asmParseCommand.h"
+#include "asmCommandHandler.h"
 #include "asmUtils.h"
 
 #include "dictionary.h"
 
 dict_t macros = NULL;
 
+uint16_t address = 0;
+
 /*
  *  Defenition
  */
 
-void convertProgram(int startCode, const char* text[], int currIndex,  int size);
+void convertProgram(const char* text[], int size);
 int parseCommand(const char* str, CmdStructPtr cmd);
-void parseMacro(uint16_t* addr, const char* text[], int index, int size);
-
 void convertAsci(uint16_t* addr, const char* str);
+
+char* dumpMacroName(const char* srcStr);
+
+void pushMacroToDictionary(dict_t dictionary, const char* srcStr);
+int getValueFromDictionary(dict_t dictionary, const char* srcStr);
+
+void parseMacro(const char* text[], int size);
 
 /*
  *  Implementation
@@ -29,76 +35,86 @@ void convertAsci(uint16_t* addr, const char* str);
 int assembly(const char* text[], int size)
 {
     uint16_t startCode = 0;
-    int i;
+    int index;
+    const char* str = NULL;
 
     macros = dictNew();
 
-    const char* str = NULL;
-
-    for(i = 0; i < size; i++)
+    for(index = 0; index < size; index++)
     {
-        str = text[i];
+        str = strTrim(text[index]);
 
         if((str[0] == ';'))
-        {
             continue;
-        }
         else if(strStartWith(str, synaxKey[SKEY_ORIGIN]))
         {
             str = str + strlen(synaxKey[SKEY_ORIGIN]);
             sscanf(str, "%ho", &startCode);
+            address = startCode;
             printf("\nStart code: %0o\n", startCode);
         }
         else if(strStartWith(str, synaxKey[SKEY_START]))
         {
-            convertProgram(startCode, text, i+1, size);
+            text[index] = text[index] + strlen(synaxKey[SKEY_START]);
+            break;
         }
     }
+
+    convertProgram(text + index, size-index);
 
     free(macros);
 
     return TRUE;
 }
 
-void convertProgram(int startCode, const char* text[], int currIndex,  int size)
+void convertProgram(const char* text[], int size)
 {
+    const char* str = NULL;
     int i;
+    CmdStruct cmd;
+    cmd.address = address;
 
-    CmdStruct cmds[256];
-    CmdStructPtr cmd = NULL;
-
-    int sizeCmds = 0;
-    uint16_t address = startCode;
-
-    for(i = currIndex; i < size; i++)
+    for(i = 0; i < size; i++)
     {
-        cmd = &(cmds[sizeCmds]);
+        str = strTrim(text[i]);
+        parseCommand(str, &cmd);
 
-        if(strStartWith(text[i], synaxKey[SKEY_DONE]))
-        {
-            parseCommand(text[i] + strlen(synaxKey[SKEY_DONE]), cmd);
-            funcConvertCmd[cmd->cmd](cmd, &address);
+        funcConvertCmd[cmd.cmd](&cmd);
+        address = cmd.address;
 
-            address += 2;
-
-            parseMacro(&address, text, i+1, size);
+        if(cmd.cmd == CMD_HALT)
             break;
-        }
-
-        parseCommand(text[i], cmd);
-
-        funcConvertCmd[cmd->cmd](cmd, &address);
-
-        sizeCmds++;
     }
 
-    for(i = 0; i < sizeCmds; i++)
-    {
-        printf("\n\t%o CMD: %s, PARAM1: %s, PARAM2: %s",
-               cmds[i].address, cmdName[cmds[i].cmd], cmds[i].param1, cmds[i].param2);
-    }
-
+    parseMacro(text+i+1, size-i);
     arrayPrint();
+}
+
+int parseCommand(const char* str, CmdStructPtr cmd)
+{
+    int err = 0;
+
+    char cmdName[32] = "";
+    char param1[32]  = "";
+    char param2[32]  = "";
+
+    const char *pos = strchr(str, ':');
+    if(pos)
+    {
+        pushMacroToDictionary(macros, str);
+        str = pos + 1;
+    }
+
+    str = strTrim(str);
+
+    err = sscanf(str, "%s %[^','], %s",
+                     cmdName, param1, param2);
+
+    cmd->cmd = convertCmdType(cmdName);
+    strcpy(cmd->param1, param1);
+    strcpy(cmd->param2, param2);
+
+    return err;
 }
 
 void convertAsci(uint16_t* addr, const char* str)
@@ -138,48 +154,54 @@ void convertAsci(uint16_t* addr, const char* str)
     }
 }
 
-int parseCommand(const char* str, CmdStructPtr cmd)
+char* dumpMacroName(const char* srcStr)
 {
-    char cmdName[32] = "";
-    char param1[32] = "";
-    char param2[32] = "";
+    const char* pos = strchr(srcStr, ':');
+    int len = pos-srcStr+1;
+    char* macroName = (char*)malloc(sizeof(char)*(len));
 
-    int err = sscanf(str, "%s %[^','], %s",
-                     cmdName, param1, param2);
+    strncpy(macroName, srcStr, len);
+    macroName[len-1] = '\0';
 
-    cmd->cmd = convertCmdType(cmdName);
-    strcpy(cmd->param1, param1);
-    strcpy(cmd->param2, param2);
-
-    return err;
+    return macroName;
 }
 
+void pushMacroToDictionary(dict_t dictionary, const char* srcStr)
+{
+    char *str = dumpMacroName(srcStr);
+    dictAdd(dictionary, str, address);
+    free(str);
+}
 
-void parseMacro(uint16_t* addr, const char* text[], int index, int size)
+int getValueFromDictionary(dict_t dictionary, const char* srcStr)
+{
+    char *str = dumpMacroName(srcStr);
+    int value = dictFind(dictionary, str, -1);
+
+    free(str);
+
+    return value;
+}
+
+void parseMacro(const char* text[], int size)
 {
     int i;
-    char *str = NULL;
-    char *pos = NULL;
+    const char *str = NULL;
+    int value = 0;
 
-    for(i = index; i < size; i++)
+    for(i = 0; i < size; i++)
     {
-        str = strdup(text[i]);
-        pos = strchr(str, ':');
+        str = strTrim(text[i]);
+        if(strStartWith(str, synaxKey[SKEY_END]) == TRUE)
+            break;
 
-        *pos = '\0';
-
-        int value = dictFind(macros, str, -1);
-
-        *pos = ':';
-
-        free(str);
-
+        value = getValueFromDictionary(macros, str);
         if(value == -1)
             continue;
 
-        arraySetValue(value, *addr);
+        arraySetValue(value, address);
 
-        convertAsci(addr, text[i]);
+        convertAsci(&address, text[i]);
     }
 }
 

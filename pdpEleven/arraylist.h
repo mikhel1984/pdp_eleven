@@ -4,15 +4,15 @@
 
 #include "common.h"
 
-extern uint16_t arrayInit(void);
-extern uint16_t* arrayInstance(void);
-extern void arrayPush(uint16_t value);
-extern uint16_t arraySize(void);
+uint16_t arrayInit(void);
+uint16_t* arrayInstance(void);
+void arrayPush(uint16_t value);
+uint16_t arraySize(void);
 
-extern uint16_t arrayCurrIndex();
-extern void arraySetValue(uint16_t index, uint16_t value);
-extern uint16_t arrayGetValue(uint16_t index);
+uint16_t arrayCurrIndex();
+void arraySetValue(uint16_t index, uint16_t value);
+uint16_t arrayGetValue(uint16_t index);
 
-extern uint16_t arrayPrint(void);
+void arrayPrint(void);
 
 #endif // ARRAYLIST_H

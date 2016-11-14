@@ -4,13 +4,10 @@
 
 #include "common.h"
 
-extern BOOL isRegister(const char* name);
-extern BOOL isMacro(const char* macro);
-extern BOOL isCmdName(const char* cmdName);
-extern BOOL isSynaxKey(const char* synaxKey);
-extern BOOL isReserveName(const char *name);
-extern BOOL isLabel(const char* name);
-
-extern int convertCmdType(const char* str);
+BOOL isRegister(const char* name);
+BOOL isMacro(const char* macro);
+BOOL isReserveName(const char *name);
+BOOL isLabel(const char* name);
+uint8_t getRegAddr(const char* name);
 
 #endif // ASMUTILS_H

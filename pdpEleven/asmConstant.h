@@ -3,6 +3,28 @@
 #define ASMCONSTANT_H
 
 #include "dictionary.h"
+#include "common.h"
+
+typedef struct Cmd
+{
+    uint16_t address;
+    int cmd;
+    char param1[32];
+    char param2[32];
+} CmdStruct, *CmdStructPtr;
+
+enum CmdType
+{
+    CMD_MOV = 0x00,
+    CMD_CLR,
+    CMD_BR,
+    CMD_MOVB,
+    CMD_BEQ,
+    CMD_INC,
+    CMD_HALT,
+    CMD_TOTAL,
+    CMD_UNKNOWN
+};
 
 enum SyntaxKeyType
 {
@@ -13,11 +35,12 @@ enum SyntaxKeyType
     SKEY_TOTAL
 };
 
+
 static const char* synaxKey[SKEY_TOTAL] = {
     ".origin",
     "start:",
     "done: ",
-    "end: "
+    ".end"
 };
 
 enum RegType
@@ -28,23 +51,6 @@ enum RegType
 static const char* regName[REG_TOTAL] = {
     "r0", "r1", "r2", "r3", "r4", "r5", "r6"
 };
-
-enum CmdType
-{
-    CMD_MOV = 0x00, CMD_CLR, CMD_BR, CMD_MOVB, CMD_INC,  CMD_HALT, CMD_TOTAL, CMD_UNKNOWN = 0x00
-};
-
-static const char* cmdName[CMD_TOTAL] = {
-    "mov", "clr", "br", "movb", "inc", "halt"
-};
-
-typedef struct Cmd
-{
-    uint16_t address;
-    int cmd;
-    char param1[32];
-    char param2[32];
-} CmdStruct, *CmdStructPtr;
 
 extern dict_t macros;
 

@@ -18,11 +18,15 @@ uint16_t address = 0;
  */
 
 void convertProgram(const char* text[], int size);
-
 int parseCommand(const char* str, CmdStructPtr cmd);
-int getValueFromDictionary(const char* srcStr);
-void parseMacro(const char* text[], int size);
 void convertAsci(uint16_t* addr, const char* str);
+
+char* dumpMacroName(const char* srcStr);
+
+void pushMacroToDictionary(dict_t dictionary, const char* srcStr);
+int getValueFromDictionary(dict_t dictionary, const char* srcStr);
+
+void parseMacro(const char* text[], int size);
 
 /*
  *  Implementation
@@ -41,9 +45,7 @@ int assembly(const char* text[], int size)
         str = strTrim(text[index]);
 
         if((str[0] == ';'))
-        {
             continue;
-        }
         else if(strStartWith(str, synaxKey[SKEY_ORIGIN]))
         {
             str = str + strlen(synaxKey[SKEY_ORIGIN]);
@@ -67,7 +69,6 @@ int assembly(const char* text[], int size)
 
 void convertProgram(const char* text[], int size)
 {
-    BOOL flag = FALSE;
     const char* str = NULL;
     int i;
     CmdStruct cmd;
@@ -89,23 +90,6 @@ void convertProgram(const char* text[], int size)
     arrayPrint();
 }
 
-const char* extractMacro(const char* str)
-{
-    int i;
-    int len = strlen(str);
-
-    for(i=0; i < len; i++)
-    {
-        if(str[i] == ':')
-        {
-            pushMacroToDictionary(str);
-            return str+i+1;
-        }
-    }
-
-    return str;
-}
-
 int parseCommand(const char* str, CmdStructPtr cmd)
 {
     int err = 0;
@@ -114,7 +98,13 @@ int parseCommand(const char* str, CmdStructPtr cmd)
     char param1[32]  = "";
     char param2[32]  = "";
 
-    str = extractMacro(str);
+    const char *pos = strchr(str, ':');
+    if(pos)
+    {
+        pushMacroToDictionary(macros, str);
+        str = pos + 1;
+    }
+
     str = strTrim(str);
 
     err = sscanf(str, "%s %[^','], %s",
@@ -126,7 +116,6 @@ int parseCommand(const char* str, CmdStructPtr cmd)
 
     return err;
 }
-
 
 void convertAsci(uint16_t* addr, const char* str)
 {
@@ -165,30 +154,30 @@ void convertAsci(uint16_t* addr, const char* str)
     }
 }
 
-void pushMacroToDictionary(const char* srcStr)
+char* dumpMacroName(const char* srcStr)
 {
-    char *str = strdup(srcStr);
+    const char* pos = strchr(srcStr, ':');
+    int len = pos-srcStr+1;
+    char* macroName = (char*)malloc(sizeof(char)*(len));
 
-    char* pos = strchr(str, ':');
-    *pos = '\0';
+    strncpy(macroName, srcStr, len);
+    macroName[len-1] = '\0';
 
-    dictAdd(macros, str, address);
+    return macroName;
+}
 
-    *pos = ':';
+void pushMacroToDictionary(dict_t dictionary, const char* srcStr)
+{
+    char *str = dumpMacroName(srcStr);
+    dictAdd(dictionary, str, address);
     free(str);
 }
 
-int getValueFromDictionary(const char* srcStr)
+int getValueFromDictionary(dict_t dictionary, const char* srcStr)
 {
-    char *str = strdup(srcStr);
-    int value = 0;
+    char *str = dumpMacroName(srcStr);
+    int value = dictFind(dictionary, str, -1);
 
-    char* pos = strchr(str, ':');
-    *pos = '\0';
-
-    value = dictFind(macros, str, -1);
-
-    *pos = ':';
     free(str);
 
     return value;
@@ -197,7 +186,7 @@ int getValueFromDictionary(const char* srcStr)
 void parseMacro(const char* text[], int size)
 {
     int i;
-    char *str = NULL;
+    const char *str = NULL;
     int value = 0;
 
     for(i = 0; i < size; i++)
@@ -206,7 +195,7 @@ void parseMacro(const char* text[], int size)
         if(strStartWith(str, synaxKey[SKEY_END]) == TRUE)
             break;
 
-        value = getValueFromDictionary(str);
+        value = getValueFromDictionary(macros, str);
         if(value == -1)
             continue;
 

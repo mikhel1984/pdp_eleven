@@ -3,6 +3,7 @@
 #include "asmUtils.h"
 #include "arraylist.h"
 #include "opcodes.h"
+#include "utils.h"
 
 #define BUILD_CMD(cmdNumb, param, regNumb) \
     (((cmdNumb & 0xF) << 12) | ((param & 0x3F) << 6) | (regNumb & 0x3F))
@@ -40,26 +41,75 @@ int8_t calcOffsetForBr(uint16_t address, const char* name);
  *  Implementation function
  */
 
+/// Public function
+
+const char* getCommandName(int type)
+{
+    switch(type)
+    {
+        case CMD_MOV : return "mov";
+        case CMD_CLR : return "clr";
+        case CMD_BR  : return "br";
+        case CMD_MOVB: return "movb";
+        case CMD_BEQ : return "beq";
+        case CMD_INC : return "inc";
+        case CMD_HALT: return "halt";
+        default: return "";
+    }
+}
+
+BOOL isCmdName(const char* name)
+{
+    for(int i = 0; i < CMD_TOTAL; i++)
+    {
+        if(strCompare(name, getCommandName(i)))
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+int convertCmdType(const char* str)
+{
+    if(strCompare(str, "mov")      ) return CMD_MOV;
+    else if(strCompare(str, "clr") ) return CMD_CLR;
+    else if(strCompare(str, "movb")) return CMD_MOVB;
+    else if(strCompare(str, "inc") ) return CMD_INC;
+    else if(strCompare(str, "br")  ) return CMD_BR;
+    else if(strCompare(str, "halt")) return CMD_HALT;
+    else if(strCompare(str, "beq") ) return CMD_BEQ;
+    else                             return CMD_UNKNOWN;
+}
+
+BOOL isSynaxKey(const char* name)
+{
+    for(int i = 0; i < CMD_TOTAL; i++)
+    {
+        if(strCompare(name, synaxKey[i]))
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+/// Private function
+
 void processCmdMov(CmdStructPtr cmd)
 {
     uint16_t optcode = opcodes[OP_MOV].base;
     uint16_t addr1   = 0x17;
     uint16_t addr2   = getRegAddr(cmd->param2);
-    uint16_t val     = BUILD_CMD(optcode, addr1, addr2);
 
     arrayPush(cmd->address);
-    arrayPush(val);
+    arrayPush(BUILD_CMD(optcode, addr1, addr2));
 
     cmd->address += 2;
-    val = 0;
 
-    if(isMacro(cmd->param2))
-    {
-        arrayPush(cmd->address);
+    arrayPush(cmd->address);
+    arrayPush(0x00);
+
+    if(isMacro(cmd->param1))
         dictAdd(macros, cmd->param1+1, arrayCurrIndex());
-    }
-
-    arrayPush(val);
 
     cmd->address += 2;
 }

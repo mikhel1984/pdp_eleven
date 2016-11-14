@@ -18,7 +18,8 @@ SOURCES += \
     arraylist.c \
     asmUtils.c \
     dictionary.c \
-    asmCommandHandler.c
+    asmCommandHandler.c \
+    utils.c
 
 HEADERS += pdpeleven.h \
     font.h \

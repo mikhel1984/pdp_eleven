@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <stdint.h>
 #include <QLineEdit>
+#include <QKeyEvent>
 
 class QGraphicsScene;
 class QImage;
@@ -20,7 +21,8 @@ public:
     explicit ProcessorWindow(QWidget *parent = 0);
     ~ProcessorWindow();
 
-private:
+protected:
+    void keyPressEvent( QKeyEvent *k );
 
 private slots:
     void on_assemblyButton_clicked();

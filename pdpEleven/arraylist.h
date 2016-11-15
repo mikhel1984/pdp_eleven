@@ -13,6 +13,8 @@ uint16_t arrayCurrIndex();
 void arraySetValue(uint16_t index, uint16_t value);
 uint16_t arrayGetValue(uint16_t index);
 
+void arrayClear(void);
+
 void arrayPrint(void);
 
 #endif // ARRAYLIST_H

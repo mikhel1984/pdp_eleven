@@ -13,6 +13,9 @@ uint16_t* arrayInstance(void)
 
 void arrayPush(uint16_t value)
 {
+    if(arrayCurrSize >= ARRAY_MAX_SIZE)
+        return;
+
     array[arrayCurrSize++] = value;
 }
 
@@ -33,6 +36,12 @@ void arraySetValue(uint16_t index, uint16_t value)
 
 uint16_t arrayGetValue(uint16_t index){
     return array[index];
+}
+
+void arrayClear(void)
+{
+    arrayCurrSize = 0;
+    memset(array, 0x00, sizeof(char)*ARRAY_MAX_SIZE);
 }
 
 void arrayPrint(void)

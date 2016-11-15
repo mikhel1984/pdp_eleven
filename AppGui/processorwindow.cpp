@@ -33,6 +33,7 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
 
 //    FILE* fl = fopen("maze", "rb");
     FILE* fl = fopen("/Users/vansickle/work/innopolis/ca/pdp_eleven/AppGui/maze", "rb");
+//    FILE* fl = fopen("C:\\maze", "rb");
     if(!fl)
         return ;
 
@@ -44,6 +45,7 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
     fread(buffer, sizeof(char), size, fl);
 
     QImage image((unsigned char*)buffer, 256, 256,QImage::Format_Mono);
+
     ui->monitor->setPixmap(QPixmap::fromImage(image));
 
     ui->intBaseComboBox->addItem("8");
@@ -57,6 +59,20 @@ ProcessorWindow::~ProcessorWindow()
     delete ui;
 }
 
+
+void ProcessorWindow::keyPressEvent( QKeyEvent *k )
+{
+    QString ch = k->text();
+    if(!ch.isEmpty())
+    {
+        int asciNumber = (int)(ch[0].toLatin1());
+        printf("%d", asciNumber);
+    }
+}
+
+/*
+ *  Public slot
+ */
 
 const char** split(QString text, int &size){
     QStringList qstrList = text.split('\n');
@@ -99,6 +115,8 @@ void ProcessorWindow::on_assemblyButton_clicked()
 //        "msgb: .string \"Different string that should get overwritten\"",
 //        ".end start"
 //    };
+
+    arrayClear();
 
     assembly(buf, length);
 

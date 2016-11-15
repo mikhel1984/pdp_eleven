@@ -9,6 +9,7 @@ QT       -= core gui
 TARGET = pdpEleven
 TEMPLATE = lib
 CONFIG += staticlib
+QMAKE_CFLAGS += -std=c99
 
 SOURCES += \
     pdpeleven.c \
@@ -35,4 +36,5 @@ HEADERS += pdpeleven.h \
     asmUtils.h \
     dictionary.h \
     opcodes.h \
-    asmCommandHandler.h
+    asmCommandHandler.h \
+    logo.h

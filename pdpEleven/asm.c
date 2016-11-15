@@ -99,7 +99,7 @@ int parseCommand(const char* str, CmdStructPtr cmd)
     char param2[32]  = "";
 
     const char *pos = strchr(str, ':');
-    if(pos)
+    if(pos && (strStartWith(str, "done:") == FALSE))
     {
         pushMacroToDictionary(macros, str);
         str = pos + 1;

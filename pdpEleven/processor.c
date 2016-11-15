@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "opcodes.h"
+#include "memory.h"
+#include <time.h>
 
 #include "test_program.h"
 
@@ -50,6 +52,9 @@ struct _Instruction {
     uint8_t *dst_ptr;     // destination address
 };
 
+char lastInstruction[256] = "";
+
+char* getLastInstruction() { return lastInstruction; }
 
 // print bits of number (for testing)
 void print8(uint8_t val) {
@@ -97,10 +102,12 @@ uint16_t sum16(uint16_t v1, uint16_t v2) {
 // pointers to memory
 
 uint16_t registers[REG_NUMBER];
-uint8_t *memory_ = (uint8_t *) programm_;
+//uint8_t *memory_ = (uint8_t *) programm_;
 uint8_t flags;
 
-uint8_t *getMemory(uint16_t address) { return memory_ + address; }
+//uint8_t *getMemory(uint16_t address) { return memory_ + address; }
+uint8_t *getMemory(uint16_t address) { return getMemoryBuf() + address; }
+
 uint16_t *getRegister(uint8_t ind) { return registers + ind; }
 
 uint16_t fetchMem() {
@@ -318,6 +325,7 @@ int fetchOperands(Instruction *inst) {
 
 }
 
+// Write data after evaluation
 int writeOperands(Instruction *inst) {
     OPCODELIST op = inst->index;
     // write only if get destination
@@ -328,6 +336,18 @@ int writeOperands(Instruction *inst) {
             *((uint16_t*) inst->dst_ptr) = *((uint16_t*) inst->dst_val);        
     }
     return 1;
+}
+
+// Delay processor frequency
+void timeNop(uint8_t t_ms) {
+    clock_t t0 = clock();
+    long i = 1;
+    int delay = t_ms * CLOCKS_PER_SEC / 1000;
+
+    while(clock() < t0 + delay) {
+        i += 1;
+    }
+
 }
 
 
@@ -364,6 +384,23 @@ int inc16(Instruction *inst) {
     return 1;
 }
 
+int dec8(Instruction *inst) {
+    uint8_t *val = inst->dst_val;
+    SET_IF(_V, *val == 0200);
+    *val -= 1;
+    SET_IF(_N, (*val) >> SHIFT7);
+    SET_IF(_Z, *val == 0);
+    return 1;
+}
+
+int dec16(Instruction *inst) {
+    uint16_t *val = (uint16_t*) inst->dst_val;
+    SET_IF(_V, *val == 0100000);
+    *val -= 1;
+    SET_IF(_N, IS_BYTE(*val));
+    SET_IF(_Z, *val == 0);
+}
+
 int mov8(Instruction* inst) {
     CLEAR_(_V);
     *(inst->dst_val) = *(inst->src_val);
@@ -392,6 +429,17 @@ int beq8(Instruction *inst) {
     return 1;
 }
 
+int bne8(Instruction* inst) {
+    if(!GET_(_Z)) {
+        uint8_t val = (uint8_t) getOperand(inst->code, opcodes[inst->index].offset_mask);
+        uint16_t *pc = getRegister(PC_REG);
+        uint16_t offset = convert16t(val);
+        *pc += 02 + offset + offset;
+        return 0;
+    }
+    return 1;
+}
+
 int br8(Instruction *inst) {
     uint8_t val = (uint8_t) getOperand(inst->code, opcodes[inst->index].offset_mask);
     uint16_t *pc = getRegister(PC_REG);
@@ -409,9 +457,12 @@ void initializeFunctions() {
     functionList[OP_CLRB] = clr8;
     functionList[OP_INC] = inc16;
     functionList[OP_INCB] = inc8;
+    functionList[OP_DEC] = dec16;
+    functionList[OP_DECB] = dec8;
     functionList[OP_MOV] = mov16;
     functionList[OP_MOVB] = mov8;
     functionList[OP_BEQ] = beq8;
+    functionList[OP_BNE] = bne8;
     functionList[OP_BR] = br8;
     int i = 0;
     for(i = 0; i < OP_COUNT; ++i) {
@@ -439,7 +490,7 @@ int evalInstruction(Instruction *inst) {
     return functionList[inst->index](inst);
 }
 
-int evalOneCircle(int *tact) {
+int evalOneCycle(int *tact) {
     uint16_t opcode;
     Instruction instruction;
     int use_inc;
@@ -453,6 +504,7 @@ int evalOneCircle(int *tact) {
     if(instruction.index == OP_HALT) return -1;
 
     //printf("%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
+    sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
 
     (*tact)++;
     fetchOperands(&instruction);
@@ -463,11 +515,13 @@ int evalOneCircle(int *tact) {
     (*tact)++;
     writeOperands(&instruction);
 
+    timeNop(1);
+
     return use_inc;
 }
 
 // Preform initial operations
-void prepareProcessor() {
+void prepareProcessor() {    
     initializeFunctions();
     resetFlags();
     resetRegisters();
@@ -479,7 +533,7 @@ int evalCode() {
     prepareProcessor();
 
     while(1) {
-        increment = evalOneCircle(&tact);
+        increment = evalOneCycle(&tact);
 
         if(increment == -1) break; // get HALT instruction
 
@@ -516,7 +570,7 @@ int testProcessor2() {
     for(k = 0; k < 200; ++k) {
 
     //while(1) {
-        increment = evalOneCircle(&tact);
+        increment = evalOneCycle(&tact);
         printRegisters();
 
         if(increment == -1) break;

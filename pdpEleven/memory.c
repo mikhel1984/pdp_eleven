@@ -35,3 +35,13 @@ const uint8_t* getVideoRom()
 {
     return (buffer + OFFSET_VIDEO_RAM);
 }
+
+const uint8_t* getRom()
+{
+    return buffer + OFFSET_ROM;
+}
+
+const uint8_t* getMemoryBuf()
+{
+    return buffer;
+}

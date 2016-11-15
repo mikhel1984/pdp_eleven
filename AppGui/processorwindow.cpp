@@ -10,6 +10,7 @@
 #include <cstring>
 #include <QTextStream>
 #include <iostream>
+#include <QDebug>
 
 extern "C"
 {
@@ -19,6 +20,8 @@ extern "C"
     #include "processor.h"
 }
 
+int intBase = 10;
+
 ProcessorWindow::ProcessorWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::ProcessorWindow)
@@ -26,18 +29,31 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
     , monitorWidth(VIDEO_WIDTH)
 {
     ui->setupUi(this);
-    gScene = new QGraphicsScene();    
-    gImage = new QImage(monitorWidth, monitorHeight, QImage::Format_Mono);
-    ui->monitor->setScene(gScene);
-
     ui->txtEditor->setText(QString("Press 'RUN' button"));
+
+//    FILE* fl = fopen("maze", "rb");
+    FILE* fl = fopen("/Users/vansickle/work/innopolis/ca/pdp_eleven/AppGui/maze", "rb");
+    if(!fl)
+        return ;
+
+    fseek(fl, 0, SEEK_END); // seek to end of file
+    int size = ftell(fl); // get current file pointer
+    fseek(fl, 0, SEEK_SET); // seek back to beginning of file
+
+    char* buffer = new char[size];
+    fread(buffer, sizeof(char), size, fl);
+
+    QImage image((unsigned char*)buffer, 256, 256,QImage::Format_Mono);
+    ui->monitor->setPixmap(QPixmap::fromImage(image));
+
+    ui->intBaseComboBox->addItem("8");
+    ui->intBaseComboBox->addItem("10");
+    ui->intBaseComboBox->addItem("16");
+    ui->intBaseComboBox->setCurrentIndex(1);
 }
 
 ProcessorWindow::~ProcessorWindow()
 {
-    delete gScene;
-    delete gImage;
-
     delete ui;
 }
 
@@ -105,22 +121,30 @@ void ProcessorWindow::on_assemblyButton_clicked()
     ui->machineCodeEditor->append(machinCodeStr);
 }
 
+void ProcessorWindow::setRegister(int number, QLineEdit* edit){
+    QString reg;
+    QTextStream ts(&reg);
+    ts.setIntegerBase(intBase);
+    ts << *getRegister(number);
+    edit->setText(reg);
+}
+
+void ProcessorWindow::setRegisters(){
+    this->setRegister(0, ui->r0edit);
+    this->setRegister(1, ui->r1edit);
+    this->setRegister(2, ui->r2edit);
+    this->setRegister(3, ui->r3edit);
+    this->setRegister(4, ui->r4edit);
+    this->setRegister(5, ui->r5edit);
+    this->setRegister(6, ui->r6edit);
+    this->setRegister(7, ui->r7edit);
+}
+
 void ProcessorWindow::on_runButton_clicked()
 {
     ui->txtEditor->append(QString("Button 'RUN' is pressed"));
     evalCode();
-
-    QString r0;
-    QTextStream(&r0) << "R0: " << *getRegister(0);
-    ui->r0label->setText(r0);
-
-    QString r1;
-    QTextStream(&r1) << "R1: " << *getRegister(1);
-    ui->r1label->setText(r1);
-
-    QString r2;
-    QTextStream(&r2) << "R2: " << *getRegister(2);
-    ui->r2label->setText(r2);
+    setRegisters();
 }
 
 
@@ -196,4 +220,11 @@ void ProcessorWindow::on_loadButton_clicked()
         //TODO remake, init memory
         *procMemory = machineWord;
     }
+}
+
+void ProcessorWindow::on_intBaseComboBox_activated(const QString &arg1)
+{
+    qDebug() << "Activated" << arg1;
+    intBase = arg1.toInt();
+    setRegisters();
 }

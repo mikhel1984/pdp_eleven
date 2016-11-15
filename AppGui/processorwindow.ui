@@ -7,268 +7,329 @@
     <x>0</x>
     <y>0</y>
     <width>691</width>
-    <height>471</height>
+    <height>491</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ProcessorWindow</string>
+   <string>PDP Eleven Emu</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QTabWidget" name="tabWidget">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>671</width>
-      <height>401</height>
-     </rect>
-    </property>
-    <property name="currentIndex">
-     <number>1</number>
-    </property>
-    <widget class="QWidget" name="tab_2">
-     <attribute name="title">
-      <string>Main</string>
-     </attribute>
-     <widget class="QPushButton" name="runButton">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>340</y>
-        <width>70</width>
-        <height>23</height>
-       </rect>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <property name="text">
-       <string>RUN</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="stopButton">
-      <property name="geometry">
-       <rect>
-        <x>90</x>
-        <y>340</y>
-        <width>70</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>STEP</string>
-      </property>
-     </widget>
-     <widget class="QGraphicsView" name="monitor">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>10</y>
-        <width>264</width>
-        <height>264</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QGroupBox" name="registersGrp">
-      <property name="geometry">
-       <rect>
-        <x>300</x>
-        <y>10</y>
-        <width>351</width>
-        <height>131</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>Registers</string>
-      </property>
-      <property name="flat">
+      <property name="autoFillBackground">
        <bool>false</bool>
       </property>
-      <property name="checkable">
-       <bool>false</bool>
+      <property name="currentIndex">
+       <number>0</number>
       </property>
-      <widget class="QLabel" name="r1label">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>50</y>
-         <width>81</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>R1</string>
-       </property>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Main</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="1">
+           <widget class="QGroupBox" name="registersGrp">
+            <property name="title">
+             <string>Registers</string>
+            </property>
+            <property name="flat">
+             <bool>false</bool>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <item>
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string>Show as</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="intBaseComboBox">
+                 <property name="maximumSize">
+                  <size>
+                   <width>100</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="layoutDirection">
+                  <enum>Qt::LeftToRight</enum>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QGridLayout" name="gridLayout">
+               <item row="0" column="4">
+                <widget class="QLabel" name="label_6">
+                 <property name="text">
+                  <string>R6 (SP)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="4">
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>R7 (PC)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="r0edit">
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                 <property name="clearButtonEnabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="3">
+                <widget class="QLineEdit" name="r4edit"/>
+               </item>
+               <item row="2" column="2">
+                <widget class="QLabel" name="label_4">
+                 <property name="text">
+                  <string>R5</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="3">
+                <widget class="QLineEdit" name="r5edit"/>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="r2label">
+                 <property name="text">
+                  <string>R2</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLineEdit" name="r2edit"/>
+               </item>
+               <item row="0" column="2">
+                <widget class="QLabel" name="label_5">
+                 <property name="text">
+                  <string>R3</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="3">
+                <widget class="QLineEdit" name="r3edit"/>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="r0label">
+                 <property name="text">
+                  <string>R0</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="r1edit"/>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="r1label">
+                 <property name="text">
+                  <string>R1</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="2">
+                <widget class="QLabel" name="label_3">
+                 <property name="text">
+                  <string>R4</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="5">
+                <widget class="QLineEdit" name="r6edit"/>
+               </item>
+               <item row="1" column="5">
+                <widget class="QLineEdit" name="r7edit"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QGridLayout" name="gridLayout_5">
+               <item row="0" column="3">
+                <widget class="QCheckBox" name="zCheckBox">
+                 <property name="layoutDirection">
+                  <enum>Qt::RightToLeft</enum>
+                 </property>
+                 <property name="text">
+                  <string>Z</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="4">
+                <widget class="QCheckBox" name="vCheckBox">
+                 <property name="layoutDirection">
+                  <enum>Qt::RightToLeft</enum>
+                 </property>
+                 <property name="text">
+                  <string>V</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string>Status</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QCheckBox" name="tCheckBox">
+                 <property name="layoutDirection">
+                  <enum>Qt::RightToLeft</enum>
+                 </property>
+                 <property name="text">
+                  <string>T</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QCheckBox" name="nCheckBox">
+                 <property name="layoutDirection">
+                  <enum>Qt::RightToLeft</enum>
+                 </property>
+                 <property name="text">
+                  <string>N</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="5">
+                <widget class="QCheckBox" name="cCheckBox">
+                 <property name="layoutDirection">
+                  <enum>Qt::RightToLeft</enum>
+                 </property>
+                 <property name="text">
+                  <string>C</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="1" column="1" rowspan="2">
+           <widget class="QTextBrowser" name="txtEditor"/>
+          </item>
+          <item row="2" column="0">
+           <layout class="QGridLayout" name="gridLayout_2">
+            <item row="0" column="0">
+             <widget class="QPushButton" name="runButton">
+              <property name="text">
+               <string>RUN</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QPushButton" name="stopButton">
+              <property name="text">
+               <string>STEP</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QPushButton" name="resetButton">
+              <property name="text">
+               <string>RESET</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="0" rowspan="2">
+           <widget class="QLabel" name="monitor">
+            <property name="minimumSize">
+             <size>
+              <width>256</width>
+              <height>256</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>256</width>
+              <height>256</height>
+             </size>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </widget>
-      <widget class="QLabel" name="r2label">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>70</y>
-         <width>101</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>R2</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_3">
-       <property name="geometry">
-        <rect>
-         <x>160</x>
-         <y>50</y>
-         <width>57</width>
-         <height>15</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>R4</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_4">
-       <property name="geometry">
-        <rect>
-         <x>260</x>
-         <y>80</y>
-         <width>57</width>
-         <height>15</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>R5</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_5">
-       <property name="geometry">
-        <rect>
-         <x>160</x>
-         <y>90</y>
-         <width>57</width>
-         <height>15</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>R3</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_6">
-       <property name="geometry">
-        <rect>
-         <x>280</x>
-         <y>70</y>
-         <width>57</width>
-         <height>15</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>R6</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_7">
-       <property name="geometry">
-        <rect>
-         <x>230</x>
-         <y>30</y>
-         <width>57</width>
-         <height>15</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>R7</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="r0label">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>30</y>
-         <width>81</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>R0</string>
-       </property>
-      </widget>
-     </widget>
-     <widget class="QTextBrowser" name="txtEditor">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>160</y>
-        <width>311</width>
-        <height>201</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="resetButton">
-      <property name="geometry">
-       <rect>
-        <x>170</x>
-        <y>340</y>
-        <width>70</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>RESET</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="tab_3">
-     <attribute name="title">
-      <string>Asm</string>
-     </attribute>
-     <widget class="QTextBrowser" name="machineCodeEditor">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>50</y>
-        <width>291</width>
-        <height>301</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Courier New</family>
-       </font>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="assemblyButton">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>10</y>
-        <width>113</width>
-        <height>32</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Assembly</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="loadButton">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>10</y>
-        <width>113</width>
-        <height>32</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Load</string>
-      </property>
-     </widget>
-     <widget class="QPlainTextEdit" name="asmTextEdit">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>50</y>
-        <width>301</width>
-        <height>301</height>
-       </rect>
-      </property>
-      <property name="plainText">
-       <string>; Program to copy and determine length of string
+      <widget class="QWidget" name="tab_3">
+       <attribute name="title">
+        <string>Asm</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="1">
+           <widget class="QPushButton" name="loadButton">
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Load</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="assemblyButton">
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>1000</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Assembly</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QTextBrowser" name="machineCodeEditor">
+            <property name="font">
+             <font>
+              <family>Courier New</family>
+             </font>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPlainTextEdit" name="asmTextEdit">
+            <property name="plainText">
+             <string>; Program to copy and determine length of string
 .origin 1000
 start: mov #msga, r1
    mov #msgb, r2
@@ -281,10 +342,16 @@ done: halt
 msga: .string &quot;A string whose length is to be determined&quot;
 msgb: .string &quot;Different string that should get overwritten&quot;
 .end start</string>
-      </property>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
-    </widget>
-   </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

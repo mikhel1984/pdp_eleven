@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <stdint.h>
+#include <QLineEdit>
 
 class QGraphicsScene;
 class QImage;
@@ -28,14 +29,15 @@ private slots:
 
     void on_loadButton_clicked();
 
-private:
-    QGraphicsScene *gScene;
-    QImage *gImage;
+    void on_intBaseComboBox_activated(const QString &arg1);
 
+private:
     Ui::ProcessorWindow *ui;
 
     const uint16_t monitorHeight;
     const uint16_t monitorWidth;
+    void setRegister(int number, QLineEdit* edit);
+    void setRegisters();
 };
 
 #endif // PROCESSORWINDOW_H

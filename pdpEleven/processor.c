@@ -50,6 +50,10 @@ struct _Instruction {
     uint8_t *dst_ptr;     // destination address
 };
 
+char lastInstruction[256] = "";
+
+char* getLastInstruction() { return lastInstruction; }
+
 
 // print bits of number (for testing)
 void print8(uint8_t val) {
@@ -439,7 +443,7 @@ int evalInstruction(Instruction *inst) {
     return functionList[inst->index](inst);
 }
 
-int evalOneCircle(int *tact) {
+int evalOneCycle(int *tact) {
     uint16_t opcode;
     Instruction instruction;
     int use_inc;
@@ -453,6 +457,7 @@ int evalOneCircle(int *tact) {
     if(instruction.index == OP_HALT) return -1;
 
     //printf("%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
+    sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
 
     (*tact)++;
     fetchOperands(&instruction);
@@ -479,7 +484,7 @@ int evalCode() {
     prepareProcessor();
 
     while(1) {
-        increment = evalOneCircle(&tact);
+        increment = evalOneCycle(&tact);
 
         if(increment == -1) break; // get HALT instruction
 
@@ -516,7 +521,7 @@ int testProcessor2() {
     for(k = 0; k < 200; ++k) {
 
     //while(1) {
-        increment = evalOneCircle(&tact);
+        increment = evalOneCycle(&tact);
         printRegisters();
 
         if(increment == -1) break;

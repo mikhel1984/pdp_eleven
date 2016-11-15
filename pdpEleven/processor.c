@@ -3,6 +3,7 @@
 #include <string.h>
 #include "opcodes.h"
 #include "memory.h"
+#include <time.h>
 
 #include "test_program.h"
 
@@ -54,7 +55,6 @@ struct _Instruction {
 char lastInstruction[256] = "";
 
 char* getLastInstruction() { return lastInstruction; }
-
 
 // print bits of number (for testing)
 void print8(uint8_t val) {
@@ -325,6 +325,7 @@ int fetchOperands(Instruction *inst) {
 
 }
 
+// Write data after evaluation
 int writeOperands(Instruction *inst) {
     OPCODELIST op = inst->index;
     // write only if get destination
@@ -335,6 +336,18 @@ int writeOperands(Instruction *inst) {
             *((uint16_t*) inst->dst_ptr) = *((uint16_t*) inst->dst_val);        
     }
     return 1;
+}
+
+// Delay processor frequency
+void timeNop(uint8_t t_ms) {
+    clock_t t0 = clock();
+    long i = 1;
+    int delay = t_ms * CLOCKS_PER_SEC / 1000;
+
+    while(clock() < t0 + delay) {
+        i += 1;
+    }
+
 }
 
 
@@ -501,6 +514,8 @@ int evalOneCycle(int *tact) {
 
     (*tact)++;
     writeOperands(&instruction);
+
+    timeNop(1);
 
     return use_inc;
 }

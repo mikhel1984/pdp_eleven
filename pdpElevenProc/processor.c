@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "opcodes.h"
+#include <time.h>
 
 #include "test_program.h"
 
@@ -317,7 +318,7 @@ int fetchOperands(Instruction *inst) {
     return 1;
 
 }
-
+// Write data after evaluation
 int writeOperands(Instruction *inst) {
     OPCODELIST op = inst->index;
     // write only if get destination
@@ -328,6 +329,19 @@ int writeOperands(Instruction *inst) {
             *((uint16_t*) inst->dst_ptr) = *((uint16_t*) inst->dst_val);        
     }
     return 1;
+}
+
+// Additional time delay for frequenct reducing
+void timeNop(uint8_t t_ms) {
+    clock_t t0 = clock();
+    long i = 1;
+    int delay = t_ms * CLOCKS_PER_SEC / 1000;
+    printf("%d\n", delay);
+
+    while(clock() < t0 + delay) {
+        i += 1;
+    }
+
 }
 
 
@@ -462,6 +476,8 @@ int evalOneCircle(int *tact) {
 
     (*tact)++;
     writeOperands(&instruction);
+
+    timeNop(30);
 
     return use_inc;
 }

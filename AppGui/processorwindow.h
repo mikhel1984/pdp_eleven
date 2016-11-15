@@ -26,6 +26,8 @@ private slots:
 
     void on_runButton_clicked();
 
+    void on_loadButton_clicked();
+
 private:
     QGraphicsScene *gScene;
     QImage *gImage;

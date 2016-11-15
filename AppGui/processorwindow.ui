@@ -245,7 +245,7 @@
        <string>Assembly</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="assemblyButton_2">
+     <widget class="QPushButton" name="loadButton">
       <property name="geometry">
        <rect>
         <x>340</x>

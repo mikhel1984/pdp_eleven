@@ -18,6 +18,7 @@ extern "C"
     #include "asm.h"
     #include "arraylist.h"
     #include "processor.h"
+    #include "memory.h"
 }
 
 int intBase = 10;
@@ -227,6 +228,8 @@ uint16_t sample_programm[] = {
 
 void ProcessorWindow::on_loadButton_clicked()
 {
+    memmoryInitialize();
+
     //temporary, while assembler works wrong
     for (int i = 0; i < sizeof(sample_programm)/sizeof(sample_programm[0]); ++i) {
         arraySetValue(i,sample_programm[i]);

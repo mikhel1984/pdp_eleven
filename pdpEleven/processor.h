@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-void prepareProcessor();
+extern void prepareProcessor();
 
 
 extern int evalCode();

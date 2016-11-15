@@ -9,6 +9,7 @@ QT       -= core gui
 TARGET = pdpEleven
 TEMPLATE = lib
 CONFIG += staticlib
+QMAKE_CFLAGS += -std=c99
 
 SOURCES += \
     pdpeleven.c \

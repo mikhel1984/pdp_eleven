@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "opcodes.h"
+#include "memory.h"
 
 #include "test_program.h"
 
@@ -101,10 +102,12 @@ uint16_t sum16(uint16_t v1, uint16_t v2) {
 // pointers to memory
 
 uint16_t registers[REG_NUMBER];
-uint8_t *memory_ = (uint8_t *) programm_;
+//uint8_t *memory_ = (uint8_t *) programm_;
 uint8_t flags;
 
-uint8_t *getMemory(uint16_t address) { return memory_ + address; }
+//uint8_t *getMemory(uint16_t address) { return memory_ + address; }
+uint8_t *getMemory(uint16_t address) { return getMemoryBuf() + address; }
+
 uint16_t *getRegister(uint8_t ind) { return registers + ind; }
 
 uint16_t fetchMem() {
@@ -368,6 +371,23 @@ int inc16(Instruction *inst) {
     return 1;
 }
 
+int dec8(Instruction *inst) {
+    uint8_t *val = inst->dst_val;
+    SET_IF(_V, *val == 0200);
+    *val -= 1;
+    SET_IF(_N, (*val) >> SHIFT7);
+    SET_IF(_Z, *val == 0);
+    return 1;
+}
+
+int dec16(Instruction *inst) {
+    uint16_t *val = (uint16_t*) inst->dst_val;
+    SET_IF(_V, *val == 0100000);
+    *val -= 1;
+    SET_IF(_N, IS_BYTE(*val));
+    SET_IF(_Z, *val == 0);
+}
+
 int mov8(Instruction* inst) {
     CLEAR_(_V);
     *(inst->dst_val) = *(inst->src_val);
@@ -396,6 +416,17 @@ int beq8(Instruction *inst) {
     return 1;
 }
 
+int bne8(Instruction* inst) {
+    if(!GET_(_Z)) {
+        uint8_t val = (uint8_t) getOperand(inst->code, opcodes[inst->index].offset_mask);
+        uint16_t *pc = getRegister(PC_REG);
+        uint16_t offset = convert16t(val);
+        *pc += 02 + offset + offset;
+        return 0;
+    }
+    return 1;
+}
+
 int br8(Instruction *inst) {
     uint8_t val = (uint8_t) getOperand(inst->code, opcodes[inst->index].offset_mask);
     uint16_t *pc = getRegister(PC_REG);
@@ -413,9 +444,12 @@ void initializeFunctions() {
     functionList[OP_CLRB] = clr8;
     functionList[OP_INC] = inc16;
     functionList[OP_INCB] = inc8;
+    functionList[OP_DEC] = dec16;
+    functionList[OP_DECB] = dec8;
     functionList[OP_MOV] = mov16;
     functionList[OP_MOVB] = mov8;
     functionList[OP_BEQ] = beq8;
+    functionList[OP_BNE] = bne8;
     functionList[OP_BR] = br8;
     int i = 0;
     for(i = 0; i < OP_COUNT; ++i) {
@@ -472,7 +506,7 @@ int evalOneCycle(int *tact) {
 }
 
 // Preform initial operations
-void prepareProcessor() {
+void prepareProcessor() {    
     initializeFunctions();
     resetFlags();
     resetRegisters();

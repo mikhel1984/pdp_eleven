@@ -20,6 +20,7 @@ enum CmdType
     CMD_BR,
     CMD_MOVB,
     CMD_BEQ,
+    CMD_BNE,
     CMD_INC,
     CMD_HALT,
     CMD_TOTAL,

@@ -34,6 +34,13 @@ BOOL isLabel(const char* name)
     return (name[poslastCh] == ':') ? TRUE : FALSE;
 }
 
+BOOL isExpression(const char* str)
+{
+    const char pos = strchr(str, '=');
+
+    return (pos == NULL) ? FALSE : TRUE;
+}
+
 uint8_t getRegAddr(const char* name)
 {
     for(uint8_t i = 0; i < REG_TOTAL; i++)

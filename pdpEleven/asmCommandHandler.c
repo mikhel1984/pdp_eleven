@@ -20,6 +20,7 @@ void processCmdClr(CmdStructPtr cmd);
 void processCmdBr(CmdStructPtr cmd);
 void processCmdMovb(CmdStructPtr cmd);
 void processCmdBeq(CmdStructPtr cmd);
+void processCmdBne(CmdStructPtr cmd);
 void processCmdInc(CmdStructPtr cmd);
 void processCmdHalt(CmdStructPtr);
 
@@ -29,6 +30,7 @@ const FuncConvertCmd funcConvertCmd[CMD_TOTAL] = {
     &processCmdBr,
     &processCmdMovb,
     &processCmdBeq,
+    &processCmdBne,
     &processCmdInc,
     &processCmdHalt
 };
@@ -52,6 +54,7 @@ const char* getCommandName(int type)
         case CMD_BR  : return "br";
         case CMD_MOVB: return "movb";
         case CMD_BEQ : return "beq";
+        case CMD_BNE : return "bne";
         case CMD_INC : return "inc";
         case CMD_HALT: return "halt";
         default: return "";
@@ -71,14 +74,15 @@ BOOL isCmdName(const char* name)
 
 int convertCmdType(const char* str)
 {
-    if(strCompare(str, "mov")      ) return CMD_MOV;
-    else if(strCompare(str, "clr") ) return CMD_CLR;
-    else if(strCompare(str, "movb")) return CMD_MOVB;
-    else if(strCompare(str, "inc") ) return CMD_INC;
-    else if(strCompare(str, "br")  ) return CMD_BR;
+    if(strCompare(str, "mov")       ) return CMD_MOV;
+    else if(strCompare(str, "clr")  ) return CMD_CLR;
+    else if(strCompare(str, "movb") ) return CMD_MOVB;
+    else if(strCompare(str, "inc")  ) return CMD_INC;
+    else if(strCompare(str, "br")   ) return CMD_BR;
+    else if(strCompare(str, "bne")  ) return CMD_BNE;
     else if(strCompare(str, "done:")) return CMD_HALT;
-    else if(strCompare(str, "beq") ) return CMD_BEQ;
-    else                             return CMD_UNKNOWN;
+    else if(strCompare(str, "beq")  ) return CMD_BEQ;
+    else                              return CMD_UNKNOWN;
 }
 
 BOOL isSynaxKey(const char* name)
@@ -139,6 +143,17 @@ void processCmdClr(CmdStructPtr cmd)
 void processCmdBr(CmdStructPtr cmd)
 {
     uint16_t val = opcodes[OP_BR].base;
+    val |= calcOffsetForBr(cmd->address, cmd->param1);
+
+    arrayPush(cmd->address);
+    arrayPush(val);
+
+    cmd->address += 2;
+}
+
+void processCmdBne(CmdStructPtr cmd)
+{
+    uint16_t val = opcodes[OP_BNE].base;
     val |= calcOffsetForBr(cmd->address, cmd->param1);
 
     arrayPush(cmd->address);

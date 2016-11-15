@@ -18,7 +18,6 @@ uint16_t address = 0;
  */
 
 void convertProgram(const char* text[], int size);
-int parseCommand(const char* str, CmdStructPtr cmd);
 void convertAsci(uint16_t* addr, const char* str);
 
 char* dumpMacroName(const char* srcStr);
@@ -27,6 +26,9 @@ void pushMacroToDictionary(dict_t dictionary, const char* srcStr);
 int getValueFromDictionary(dict_t dictionary, const char* srcStr);
 
 void parseMacro(const char* text[], int size);
+
+int parseCommand(const char* str, CmdStructPtr cmd);
+void pushExprToDict(const char* str);
 
 /*
  *  Implementation
@@ -44,8 +46,13 @@ int assembly(const char* text[], int size)
     {
         str = strTrim(text[index]);
 
+
         if((str[0] == ';'))
             continue;
+        else if(isExpression(str))
+        {
+            pushExprToDict(str);
+        }
         else if(strStartWith(str, synaxKey[SKEY_ORIGIN]))
         {
             str = str + strlen(synaxKey[SKEY_ORIGIN]);
@@ -88,33 +95,6 @@ void convertProgram(const char* text[], int size)
 
     parseMacro(text+i+1, size-i);
     arrayPrint();
-}
-
-int parseCommand(const char* str, CmdStructPtr cmd)
-{
-    int err = 0;
-
-    char cmdName[32] = "";
-    char param1[32]  = "";
-    char param2[32]  = "";
-
-    const char *pos = strchr(str, ':');
-    if(pos && (strStartWith(str, "done:") == FALSE))
-    {
-        pushMacroToDictionary(macros, str);
-        str = pos + 1;
-    }
-
-    str = strTrim(str);
-
-    err = sscanf(str, "%s %[^','], %s",
-                     cmdName, param1, param2);
-
-    cmd->cmd = convertCmdType(cmdName);
-    strcpy(cmd->param1, param1);
-    strcpy(cmd->param2, param2);
-
-    return err;
 }
 
 void convertAsci(uint16_t* addr, const char* str)
@@ -205,3 +185,47 @@ void parseMacro(const char* text[], int size)
     }
 }
 
+int parseCommand(const char* str, CmdStructPtr cmd)
+{
+    int err = 0;
+
+    char cmdName[32] = "";
+    char param1[32]  = "";
+    char param2[32]  = "";
+
+    const char *pos = strchr(str, ':');
+    if(pos && (strStartWith(str, "done:") == FALSE))
+    {
+        pushMacroToDictionary(macros, str);
+        str = pos + 1;
+    }
+
+    str = strTrim(str);
+
+    err = sscanf(str, "%s %[^','], %s",
+                     cmdName, param1, param2);
+
+    cmd->cmd = convertCmdType(cmdName);
+    strcpy(cmd->param1, param1);
+    strcpy(cmd->param2, param2);
+
+    return err;
+}
+
+void pushExprToDict(const char* str)
+{
+    int exprVal = 0;
+    const char* pos = strchr(str, '=');
+
+    int lenNameVar = pos - str;
+    char* nameVar = (char*)malloc(sizeof(char)*lenNameVar+1);
+
+    strncpy(nameVar, str, lenNameVar);
+    nameVar[lenNameVar] = '\0';
+
+    exprVal = strtol (pos+1,NULL,10);
+
+    dictAdd(macros, nameVar, exprVal);
+
+    free(nameVar);
+}

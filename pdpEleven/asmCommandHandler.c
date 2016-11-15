@@ -35,7 +35,7 @@ const FuncConvertCmd funcConvertCmd[CMD_TOTAL] = {
 
 
 void afterBeq(uint16_t address);
-int8_t calcOffsetForBr(uint16_t address, const char* name);
+uint8_t calcOffsetForBr(uint16_t address, const char* name);
 
 /*
  *  Implementation function
@@ -76,7 +76,7 @@ int convertCmdType(const char* str)
     else if(strCompare(str, "movb")) return CMD_MOVB;
     else if(strCompare(str, "inc") ) return CMD_INC;
     else if(strCompare(str, "br")  ) return CMD_BR;
-    else if(strCompare(str, "halt")) return CMD_HALT;
+    else if(strCompare(str, "done:")) return CMD_HALT;
     else if(strCompare(str, "beq") ) return CMD_BEQ;
     else                             return CMD_UNKNOWN;
 }
@@ -96,12 +96,13 @@ BOOL isSynaxKey(const char* name)
 
 void processCmdMov(CmdStructPtr cmd)
 {
-    uint16_t optcode = opcodes[OP_MOV].base;
-    uint16_t addr1   = 0x17;
-    uint16_t addr2   = getRegAddr(cmd->param2);
-
+    uint32_t optcode = opcodes[OP_MOV].base;
+    uint32_t addr1   = 0x17;
+    uint32_t addr2   = getRegAddr(cmd->param2);
+    uint32_t val = BUILD_DO(optcode, 2, 0x7, 0, addr2);
     arrayPush(cmd->address);
-    arrayPush(BUILD_CMD(optcode, addr1, addr2));
+
+    arrayPush(val);
 
     cmd->address += 2;
 
@@ -120,7 +121,6 @@ void processCmdBeq(CmdStructPtr cmd)
     arrayPush(opcodes[OP_BEQ].base);
 
     cmd->address += 2;
-
     dictAdd(macros, cmd->param1, arrayCurrIndex());
 }
 
@@ -138,7 +138,7 @@ void processCmdClr(CmdStructPtr cmd)
 
 void processCmdBr(CmdStructPtr cmd)
 {
-    int val = opcodes[OP_BR].base;
+    uint16_t val = opcodes[OP_BR].base;
     val |= calcOffsetForBr(cmd->address, cmd->param1);
 
     arrayPush(cmd->address);
@@ -181,7 +181,7 @@ void processCmdHalt(CmdStructPtr cmd)
     cmd->address += 2;
 }
 
-int8_t calcOffsetForBr(uint16_t address, const char* name)
+uint8_t calcOffsetForBr(uint16_t address, const char* name)
 {
     int addr = dictFind(macros, name, -1);
 
@@ -200,10 +200,11 @@ void afterBeq(uint16_t address)
         return;
 
     index -= 1; // set index to address
+    oldVal = arrayGetValue(index);
     offset = ((address - arrayGetValue(index)) / 2) - 1;
 
-    oldVal = arrayGetValue(index);
+    oldVal = arrayGetValue(index+1);
     oldVal |= offset;
 
-    arraySetValue(index, oldVal);
+    arraySetValue(index+1, oldVal);
 }

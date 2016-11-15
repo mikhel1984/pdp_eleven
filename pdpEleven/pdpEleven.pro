@@ -36,4 +36,5 @@ HEADERS += pdpeleven.h \
     asmUtils.h \
     dictionary.h \
     opcodes.h \
-    asmCommandHandler.h
+    asmCommandHandler.h \
+    logo.h

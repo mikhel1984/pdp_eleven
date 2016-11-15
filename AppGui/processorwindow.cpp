@@ -26,21 +26,44 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
     , monitorWidth(VIDEO_WIDTH)
 {
     ui->setupUi(this);
-    gScene = new QGraphicsScene();    
-    gImage = new QImage(monitorWidth, monitorHeight, QImage::Format_Mono);
-    ui->monitor->setScene(gScene);
-
     ui->txtEditor->setText(QString("Press 'RUN' button"));
+
+    FILE* fl = fopen("C:\\maze", "rb");
+    if(!fl)
+        return ;
+
+    fseek(fl, 0, SEEK_END); // seek to end of file
+    int size = ftell(fl); // get current file pointer
+    fseek(fl, 0, SEEK_SET); // seek back to beginning of file
+
+    char* buffer = new char[size];
+    fread(buffer, sizeof(char), size, fl);
+
+    QImage image((unsigned char*)buffer, 256, 256,QImage::Format_Mono);
+    ui->label_7->setPixmap(QPixmap::fromImage(image));
 }
 
 ProcessorWindow::~ProcessorWindow()
 {
-    delete gScene;
     delete gImage;
 
     delete ui;
 }
 
+
+void ProcessorWindow::keyPressEvent( QKeyEvent *k )
+{
+    QString ch = k->text();
+    if(!ch.isEmpty())
+    {
+        int asciNumber = (int)(ch[0].toLatin1());
+        printf("%d", asciNumber);
+    }
+}
+
+/*
+ *  Public slot
+ */
 
 const char** split(QString text, int &size){
     QStringList qstrList = text.split('\n');

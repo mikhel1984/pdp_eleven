@@ -22,6 +22,7 @@ enum CmdType
     CMD_BEQ,
     CMD_BNE,
     CMD_INC,
+    CMD_DEC,
     CMD_HALT,
     CMD_TOTAL,
     CMD_UNKNOWN

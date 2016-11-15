@@ -46,7 +46,6 @@ int assembly(const char* text[], int size)
     {
         str = strTrim(text[index]);
 
-
         if((str[0] == ';'))
             continue;
         else if(isExpression(str))
@@ -223,7 +222,7 @@ void pushExprToDict(const char* str)
     strncpy(nameVar, str, lenNameVar);
     nameVar[lenNameVar] = '\0';
 
-    exprVal = strtol (pos+1,NULL,10);
+    exprVal = strtol (pos+1,NULL,8);
 
     dictAdd(macros, nameVar, exprVal);
 

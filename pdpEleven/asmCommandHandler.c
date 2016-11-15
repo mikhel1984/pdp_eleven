@@ -22,6 +22,7 @@ void processCmdMovb(CmdStructPtr cmd);
 void processCmdBeq(CmdStructPtr cmd);
 void processCmdBne(CmdStructPtr cmd);
 void processCmdInc(CmdStructPtr cmd);
+void processCmdDec(CmdStructPtr cmd);
 void processCmdHalt(CmdStructPtr);
 
 const FuncConvertCmd funcConvertCmd[CMD_TOTAL] = {
@@ -32,6 +33,7 @@ const FuncConvertCmd funcConvertCmd[CMD_TOTAL] = {
     &processCmdBeq,
     &processCmdBne,
     &processCmdInc,
+    &processCmdDec,
     &processCmdHalt
 };
 
@@ -56,8 +58,9 @@ const char* getCommandName(int type)
         case CMD_BEQ : return "beq";
         case CMD_BNE : return "bne";
         case CMD_INC : return "inc";
+        case CMD_DEC : return "dec";
         case CMD_HALT: return "halt";
-        default: return "";
+        default:       return "";
     }
 }
 
@@ -78,6 +81,7 @@ int convertCmdType(const char* str)
     else if(strCompare(str, "clr")  ) return CMD_CLR;
     else if(strCompare(str, "movb") ) return CMD_MOVB;
     else if(strCompare(str, "inc")  ) return CMD_INC;
+    else if(strCompare(str, "dec")  ) return CMD_DEC;
     else if(strCompare(str, "br")   ) return CMD_BR;
     else if(strCompare(str, "bne")  ) return CMD_BNE;
     else if(strCompare(str, "done:")) return CMD_HALT;
@@ -101,9 +105,9 @@ BOOL isSynaxKey(const char* name)
 void processCmdMov(CmdStructPtr cmd)
 {
     uint32_t optcode = opcodes[OP_MOV].base;
-    uint32_t addr1   = 0x17;
     uint32_t addr2   = getRegAddr(cmd->param2);
     uint32_t val = BUILD_DO(optcode, 2, 0x7, 0, addr2);
+    uint32_t valMacro = 0;
     arrayPush(cmd->address);
 
     arrayPush(val);
@@ -111,10 +115,21 @@ void processCmdMov(CmdStructPtr cmd)
     cmd->address += 2;
 
     arrayPush(cmd->address);
-    arrayPush(0x00);
+
 
     if(isMacro(cmd->param1))
-        dictAdd(macros, cmd->param1+1, arrayCurrIndex());
+    {
+        valMacro = dictFind(macros, cmd->param1+1, -1);
+        if(valMacro == -1)
+        {
+            dictAdd(macros, cmd->param1+1, arrayCurrIndex());
+            arrayPush(0x00);
+        }
+        else
+        {
+            arrayPush(valMacro);
+        }
+    }
 
     cmd->address += 2;
 }
@@ -177,6 +192,18 @@ void processCmdMovb(CmdStructPtr cmd)
 void processCmdInc(CmdStructPtr cmd)
 {
     int optcode = opcodes[OP_INC].base;
+    int addr1   = 0x2A;
+    int addr2   = getRegAddr(cmd->param1);
+
+    arrayPush(cmd->address);
+    arrayPush(BUILD_CMD(optcode, addr1, addr2));
+
+    cmd->address += 2;
+}
+
+void processCmdDec(CmdStructPtr cmd)
+{
+    int optcode = opcodes[OP_DEC].base;
     int addr1   = 0x2A;
     int addr2   = getRegAddr(cmd->param1);
 

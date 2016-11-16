@@ -229,15 +229,18 @@ uint16_t sample_programm[] = {
 void ProcessorWindow::on_loadButton_clicked()
 {
     memmoryInitialize();
+    arrayClear();
 
     //temporary, while assembler works wrong
     for (int i = 0; i < sizeof(sample_programm)/sizeof(sample_programm[0]); ++i) {
-        arraySetValue(i,sample_programm[i]);
+        arrayPush(0);
+        arrayPush(sample_programm[i]);
+//        arraySetValue(i,sample_programm[i]);
     }
 
-    for (int i = 0; i < arraySize(); i++){
-        uint16_t *procMemory = (uint16_t*) getMemory(2*i);
-        uint16_t machineWord = arrayGetValue(i);
+    for (int i = 0; i < arraySize(); i+=2){
+        uint16_t *procMemory = (uint16_t*) getMemory(i);
+        uint16_t machineWord = arrayGetValue(i+1);
         //TODO remake, init memory
         *procMemory = machineWord;
     }

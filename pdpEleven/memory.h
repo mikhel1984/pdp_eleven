@@ -16,6 +16,22 @@
 
 #define REGISTER_NUMBER         6
 
+/*
+ *                      MEMMORY MAP
+ */
+
+static const uint32_t MEMMORY_TOTAL_SIZE = MEMMORY_IVT_SIZE + MEMMORY_RAM_SIZE +
+                      MEMMORY_VIDEO_RAM_SIZE + MEMMORY_ROM_SIZE + MEMMORY_IO_SIZE +
+                      REGISTER_NUMBER;
+
+// offset
+static const uint32_t OFFSET_IVT       = 0;
+static const uint32_t OFFSET_RAM       = MEMMORY_IVT_SIZE;
+static const uint32_t OFFSET_VIDEO_RAM = MEMMORY_IVT_SIZE + MEMMORY_RAM_SIZE;
+static const uint32_t OFFSET_ROM       = MEMMORY_IVT_SIZE + MEMMORY_RAM_SIZE + MEMMORY_ROM_SIZE;
+static const uint32_t OFFSET_IO        = MEMMORY_IVT_SIZE + MEMMORY_RAM_SIZE + MEMMORY_ROM_SIZE +
+                                         MEMMORY_ROM_SIZE;
+
 extern bool memmoryInitialize();
 
 extern const uint8_t* getVideoRom();

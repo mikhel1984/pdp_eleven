@@ -39,6 +39,8 @@ private slots:
 
     void on_stepButton_clicked();
 
+    void on_refreshMemoryButton_clicked();
+
 private:
     Ui::ProcessorWindow *ui;
 

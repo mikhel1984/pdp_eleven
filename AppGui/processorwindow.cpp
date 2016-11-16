@@ -13,6 +13,7 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QPlainTextEdit>
+#include "qhexedit.h"
 
 extern "C"
 {
@@ -24,6 +25,7 @@ extern "C"
 }
 
 int intBase = 10;
+QHexEdit* qhe;
 
 ProcessorWindow::ProcessorWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -56,6 +58,13 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
     ui->intBaseComboBox->addItem("10");
     ui->intBaseComboBox->addItem("16");
     ui->intBaseComboBox->setCurrentIndex(1);
+
+    memmoryInitialize();
+    qhe = new QHexEdit(ui->memoryTab);
+    ui->memoryTab->layout()->addWidget(qhe);
+
+    QByteArray qByteArray = QByteArray::fromRawData(reinterpret_cast<const char*>(getMemoryBuf()), MEMMORY_TOTAL_SIZE);
+    qhe->setData(qByteArray);
 }
 
 ProcessorWindow::~ProcessorWindow()
@@ -284,4 +293,12 @@ void ProcessorWindow::on_resetButton_clicked()
 
 void ProcessorWindow::on_stepButton_clicked()
 {
+}
+
+void ProcessorWindow::on_refreshMemoryButton_clicked()
+{
+    //TODO refresh using some hexedit funciton (without recreate bytearray)
+    //TODO auto reload by timer
+    QByteArray qByteArray = QByteArray::fromRawData(reinterpret_cast<const char*>(getMemoryBuf()), MEMMORY_TOTAL_SIZE);
+    qhe->setData(qByteArray);
 }

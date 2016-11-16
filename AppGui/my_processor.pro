@@ -13,12 +13,15 @@ TEMPLATE = app
 
 
 INCLUDEPATH += "../pdpEleven/"
+INCLUDEPATH += "../qhexedit/"
 
 CONFIG(debug, debug|release) {
     LIBS += -L../build-pdpEleven/debug/ -lpdpEleven
+    LIBS += -L../build-qhexedit/debug/ -lqhexedit
 }
 else {
-    LIBS += -L./build-pdpEleven/release/ -lpdpEleven
+    LIBS += -L../build-pdpEleven/release/ -lpdpEleven
+    LIBS += -L../build-qhexedit/release/ -lqhexedit
 }
 
 SOURCES += main.cpp\

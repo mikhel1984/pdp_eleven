@@ -27,9 +27,9 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="mainTab">
        <attribute name="title">
         <string>Main</string>
        </attribute>
@@ -284,7 +284,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_3">
+      <widget class="QWidget" name="asmTab">
        <attribute name="title">
         <string>Asm</string>
        </attribute>
@@ -376,6 +376,26 @@ msgb: .string &quot;Different string that should get overwritten&quot;
            </layout>
           </item>
          </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="memoryTab">
+       <attribute name="title">
+        <string>Memory</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QPushButton" name="refreshMemoryButton">
+          <property name="maximumSize">
+           <size>
+            <width>120</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Refresh</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

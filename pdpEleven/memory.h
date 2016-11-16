@@ -8,21 +8,24 @@
 #define VIDEO_HEIGHT   256
 #define VIDEO_WIDTH    256
 
-#define MEMMORY_IVT_SIZE        16384
-#define MEMMORY_RAM_SIZE        16384
-#define MEMMORY_VIDEO_RAM_SIZE  16384
-#define MEMMORY_ROM_SIZE        16384
-#define MEMMORY_IO_SIZE         16384
+#define MEMORY_IVT_SIZE        16384
+#define MEMORY_RAM_SIZE        16384
+#define MEMORY_VIDEO_RAM_SIZE  16384
+#define MEMORY_ROM_SIZE        16384
+#define MEMORY_IO_SIZE         16384
 
 #define REGISTER_NUMBER         6
 
-extern bool memmoryInitialize();
+typedef uint8_t* memory_ptr;
 
-extern const uint8_t* getVideoRom();
-extern const uint8_t* getRom();
-extern uint8_t* getMemoryBuf();
+bool memmoryInitialize(void);
+void memmoryDestroy(void);
 
-extern uint16_t getVideoHeight();
-extern uint16_t getVideoWidth();
+memory_ptr memoryGetVideoRom(void);
+memory_ptr memoryGetRom(void);
+uint8_t* memoryGetPointer(void);
+
+uint16_t getVideoHeight(void);
+uint16_t getVideoWidth(void);
 
 #endif // MEMORY_H

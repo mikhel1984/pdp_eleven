@@ -21,7 +21,8 @@ SOURCES += \
     dictionary.c \
     asmCommandHandler.c \
     utils.c \
-    opcodes.c
+    opcodes.c \
+    system.c
 
 HEADERS += pdpeleven.h \
     font.h \
@@ -37,4 +38,5 @@ HEADERS += pdpeleven.h \
     dictionary.h \
     opcodes.h \
     asmCommandHandler.h \
-    logo.h
+    logo.h \
+    system.h

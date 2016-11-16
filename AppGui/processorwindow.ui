@@ -27,7 +27,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
@@ -243,7 +243,7 @@
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QPushButton" name="stopButton">
+             <widget class="QPushButton" name="stepButton">
               <property name="text">
                <string>STEP</string>
               </property>
@@ -317,7 +317,7 @@
            <widget class="QPlainTextEdit" name="asmTextEdit">
             <property name="plainText">
              <string>; Program to copy and determine length of string
-.origin 1000
+.origin 0000
 start: mov #msga, r1
    mov #msgb, r2
    clr r0

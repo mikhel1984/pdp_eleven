@@ -32,7 +32,8 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
     , monitorWidth(VIDEO_WIDTH)
 {
     ui->setupUi(this);
-    ui->txtEditor->setText(QString("Press 'RUN' button"));
+    ui->txtEditor->setText(QString("Assemble code, Load it to memory and then press 'Run'"));
+    setRegisters();
 
 //    FILE* fl = fopen("maze", "rb");
     FILE* fl = fopen("/Users/vansickle/work/innopolis/ca/pdp_eleven/AppGui/maze", "rb");
@@ -273,4 +274,14 @@ void ProcessorWindow::on_loadFromFileButton_clicked()
     ui->asmTextEdit->clear();
     ui->asmTextEdit->appendPlainText(in.readAll());
 
+}
+
+void ProcessorWindow::on_resetButton_clicked()
+{
+    prepareProcessor();
+    setRegisters();
+}
+
+void ProcessorWindow::on_stepButton_clicked()
+{
 }

@@ -35,6 +35,10 @@ private slots:
 
     void on_loadFromFileButton_clicked();
 
+    void on_resetButton_clicked();
+
+    void on_stepButton_clicked();
+
 private:
     Ui::ProcessorWindow *ui;
 

@@ -126,14 +126,18 @@ uint8_t *getMemory(uint16_t address) { return getMemoryBuf() + address; }
 
 uint16_t *getRegister(uint8_t ind) { return registers + ind; }
 
+void setProgrammStart(uint16_t ind) {
+    *getRegister(PC_REG) = ind;
+}
+
 uint16_t fetchMem() {
     uint16_t addr = *getRegister(PC_REG);
-
+/*
 #ifdef WRITELOG
     sprintf(logging, "FETCH: %o", (int) *((uint16_t*) getMemory(addr)));
     writelog(LOGFILE, logging);
 #endif
-
+*/
     return *((uint16_t*) getMemory(addr));
 }
 
@@ -343,11 +347,12 @@ int fetchOperands(Instruction *inst) {
             *((uint16_t*) inst->dst_val) = *((uint16_t*) inst->dst_ptr);
         }
     }
-
+/*
 #ifdef WRITELOG
-    sprintf(logging, "FETCHOP: src=%o dst=%o\n", (int) inst->src_val, (int)inst->dst_val);
+    sprintf(logging, "FETCHOP: src=%o dst=%o", (int) inst->src_val, (int)inst->dst_val);
     writelog(LOGFILE, logging);
 #endif
+*/
     return 1;
 
 }
@@ -362,9 +367,10 @@ int writeOperands(Instruction *inst) {
         else
             *((uint16_t*) inst->dst_ptr) = *((uint16_t*) inst->dst_val);        
     }
+
 #ifdef WRITELOG
-    sprintf(logging, "WRITE: src=%o dst=%o\n", (int) inst->src_val, (int)inst->dst_val);
-    writelog(LOGFILE, logging);
+    //sprintf(logging, "WRITE: src=%o dst=%o\n", (int) inst->src_val, (int)inst->dst_val);
+    writelog(LOGFILE, "");
 #endif
     return 1;
 }
@@ -514,12 +520,12 @@ Instruction decode(uint16_t opcode) {
     res.code = opcode;
     res.src_ptr = res.dst_ptr = NULL;
     res.src_val[0] = res.src_val[1] = res.dst_val[0] = res.dst_val[1] = 0;
-
+/*
 #ifdef WRITELOG
     sprintf(logging, "DECODE: index=%o opcode=%o", res.index, res.code);
     writelog(LOGFILE, logging);
 #endif
-
+*/
     return res;
 }
 
@@ -531,6 +537,13 @@ int evalOneCycle(int *tact) {
     uint16_t opcode;
     Instruction instruction;
     int use_inc;
+
+#ifdef WRITELOG
+    sprintf(logging, "\nR0:%o R1:%o R2:%o R3:%o R4:%o R5:%o R6:%o R7:%o",
+           registers[0], registers[1], registers[2], registers[3], registers[4],
+            registers[5], registers[6], registers[7]);
+    writelog(LOGFILE, logging);
+#endif
 
     (*tact) ++;
     opcode = fetchMem();

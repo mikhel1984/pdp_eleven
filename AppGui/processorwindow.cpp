@@ -235,9 +235,9 @@ void ProcessorWindow::on_loadButton_clicked()
         arraySetValue(i,sample_programm[i]);
     }
 
-    for (int i = 0; i < arraySize(); i+=2){
-        uint16_t *procMemory = (uint16_t*) getMemory(i);
-        uint16_t machineWord = arrayGetValue(i+1);
+    for (int i = 0; i < arraySize(); i++){
+        uint16_t *procMemory = (uint16_t*) getMemory(2*i);
+        uint16_t machineWord = arrayGetValue(i);
         //TODO remake, init memory
         *procMemory = machineWord;
     }

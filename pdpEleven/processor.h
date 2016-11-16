@@ -10,6 +10,7 @@ extern int evalCode();
 extern int evalOneCycle(int *tact);
 extern uint16_t *getRegister(uint8_t ind);
 extern uint8_t *getMemory(uint16_t ind);
+extern void setProgrammStart(uint16_t ind);
 
 char* getLastInstruction();
 

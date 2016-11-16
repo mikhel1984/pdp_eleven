@@ -122,8 +122,8 @@ void processCmdMov(CmdStructPtr cmd)
         valMacro = dictFind(macros, cmd->param1+1, -1);
         if(valMacro == -1)
         {
-            dictAdd(macros, cmd->param1+1, arrayCurrIndex());
             arrayPush(0x00);
+            dictAdd(macros, cmd->param1+1, arrayCurrIndex());
         }
         else
         {

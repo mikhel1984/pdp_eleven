@@ -3,11 +3,16 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-SOURCES += main.c \
-    processor.c
+INCLUDEPATH += "../pdpEleven/"
 
-HEADERS += \
-    opcodes.h \
-    processor.h \
-    test_program.h
+CONFIG(debug, debug|release) {
+    LIBS += -L../build-pdpEleven/debug/ -lpdpEleven
+}
+else {
+    LIBS += -L./build-pdpEleven/release/ -lpdpEleven
+}
+
+SOURCES += main.c
+
+HEADERS +=
 

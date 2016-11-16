@@ -1,8 +1,8 @@
 ; Program to copy logo_bitmap from ROM to video ROM
-.origin 1000
-imagerom=10
-videoram=5000
-videosize=1000
+.origin 21450
+imagerom=140000
+videoram=100000
+videosize=20000
 start: mov #imagerom, r1
    mov #videoram, r2
    mov #videosize, r0

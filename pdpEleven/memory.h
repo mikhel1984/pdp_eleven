@@ -20,7 +20,7 @@ extern bool memmoryInitialize();
 
 extern const uint8_t* getVideoRom();
 extern const uint8_t* getRom();
-extern const uint8_t* getMemoryBuf();
+extern uint8_t* getMemoryBuf();
 
 extern uint16_t getVideoHeight();
 extern uint16_t getVideoWidth();

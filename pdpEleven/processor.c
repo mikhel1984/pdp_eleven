@@ -399,6 +399,7 @@ int dec16(Instruction *inst) {
     *val -= 1;
     SET_IF(_N, IS_BYTE(*val));
     SET_IF(_Z, *val == 0);
+    return 1;
 }
 
 int mov8(Instruction* inst) {

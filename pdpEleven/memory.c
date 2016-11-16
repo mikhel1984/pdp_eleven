@@ -41,7 +41,7 @@ const uint8_t* getRom()
     return buffer + OFFSET_ROM;
 }
 
-const uint8_t* getMemoryBuf()
+uint8_t* getMemoryBuf()
 {
     return buffer;
 }

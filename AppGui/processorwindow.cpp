@@ -11,6 +11,8 @@
 #include <QTextStream>
 #include <iostream>
 #include <QDebug>
+#include <QFileDialog>
+#include <QPlainTextEdit>
 
 extern "C"
 {
@@ -251,4 +253,24 @@ void ProcessorWindow::on_intBaseComboBox_activated(const QString &arg1)
     qDebug() << "Activated" << arg1;
     intBase = arg1.toInt();
     setRegisters();
+}
+
+void ProcessorWindow::on_loadFromFileButton_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName
+            (this, tr("Open Assembly Program"), QDir::current().absolutePath(), tr("Image Files (*.asm *.txt)"));
+    qDebug() << fileName;
+
+    if(fileName.isEmpty())
+        return;
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return;
+
+    QTextStream in(&file);
+
+    ui->asmTextEdit->clear();
+    ui->asmTextEdit->appendPlainText(in.readAll());
+
 }

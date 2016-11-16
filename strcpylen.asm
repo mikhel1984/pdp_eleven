@@ -1,5 +1,5 @@
 ; Program to copy and determine length of string
-.origin 1000
+.origin 0000
 start: mov #msga, r1
    mov #msgb, r2
    clr r0

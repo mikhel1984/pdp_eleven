@@ -27,3 +27,5 @@ SOURCES += main.cpp\
 HEADERS  += processorwindow.h
 
 FORMS    += processorwindow.ui
+
+DISTFILES +=

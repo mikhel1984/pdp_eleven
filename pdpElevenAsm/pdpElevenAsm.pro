@@ -14,5 +14,4 @@ else {
 
 SOURCES += main.c
 
-DISTFILES += \
-    strcpylen.asm
+DISTFILES +=

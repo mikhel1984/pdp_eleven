@@ -33,6 +33,8 @@ private slots:
 
     void on_intBaseComboBox_activated(const QString &arg1);
 
+    void on_loadFromFileButton_clicked();
+
 private:
     Ui::ProcessorWindow *ui;
 

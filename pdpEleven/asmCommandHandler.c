@@ -191,24 +191,16 @@ void processCmdMovb(CmdStructPtr cmd)
 
 void processCmdInc(CmdStructPtr cmd)
 {
-    int optcode = opcodes[OP_INC].base;
-    int addr1   = 0x2A;
-    int addr2   = getRegAddr(cmd->param1);
-
     arrayPush(cmd->address);
-    arrayPush(BUILD_CMD(optcode, addr1, addr2));
+    arrayPush(opcodes[OP_INC].base | getRegAddr(cmd->param1));
 
     cmd->address += 2;
 }
 
 void processCmdDec(CmdStructPtr cmd)
 {
-    int optcode = opcodes[OP_DEC].base;
-    int addr1   = 0x2A;
-    int addr2   = getRegAddr(cmd->param1);
-
     arrayPush(cmd->address);
-    arrayPush(BUILD_CMD(optcode, addr1, addr2));
+    arrayPush(opcodes[OP_DEC].base | getRegAddr(cmd->param1));
 
     cmd->address += 2;
 }

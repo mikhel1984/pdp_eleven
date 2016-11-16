@@ -5,27 +5,33 @@
 #include "stdlib.h"
 #include "string.h"
 
-uint8_t* buffer = NULL;
+memory_ptr buffer = NULL;
 
-bool memmoryInitialize()
+bool memmoryInitialize(void)
 {
-    buffer = (uint8_t*)malloc(MEMMORY_TOTAL_SIZE);
-    memset(buffer, 0, MEMMORY_TOTAL_SIZE);
+    buffer = (uint8_t*)malloc(MEMORY_TOTAL_SIZE);
+    memset(buffer, 0, MEMORY_TOTAL_SIZE);
 
     return (buffer) ? true : false;
 }
 
-const uint8_t* getVideoRom()
+void memmoryDestroy(void)
+{
+    free(buffer);
+}
+
+memory_ptr memoryGetVideoRom(void)
 {
     return (buffer + OFFSET_VIDEO_RAM);
 }
 
-const uint8_t* getRom()
+memory_ptr memoryGetRom(void)
 {
     return buffer + OFFSET_ROM;
 }
 
-uint8_t* getMemoryBuf()
+uint8_t* memoryGetPointer(void)
 {
     return buffer;
 }
+

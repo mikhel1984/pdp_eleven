@@ -18,6 +18,7 @@
 extern "C"
 {
     #include "memory.h"
+    #include "system.h"
     #include "asm.h"
     #include "arraylist.h"
     #include "processor.h"
@@ -37,22 +38,22 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
     ui->txtEditor->setText(QString("Assemble code, Load it to memory and then press 'Run'"));
     setRegisters();
 
-//    FILE* fl = fopen("maze", "rb");
-    FILE* fl = fopen("/Users/vansickle/work/innopolis/ca/pdp_eleven/AppGui/maze", "rb");
-//    FILE* fl = fopen("C:\\maze", "rb");
-    if(!fl)
-        return ;
+    //FILE* fl = fopen("maze", "rb");
+    //FILE* fl = fopen("/Users/vansickle/work/innopolis/ca/pdp_eleven/AppGui/maze", "rb");
+    //FILE* fl = fopen("C:\\maze", "rb");
+    //if(!fl)
+    //    return ;
 
-    fseek(fl, 0, SEEK_END); // seek to end of file
-    int size = ftell(fl); // get current file pointer
-    fseek(fl, 0, SEEK_SET); // seek back to beginning of file
+    //fseek(fl, 0, SEEK_END); // seek to end of file
+    //int size = ftell(fl); // get current file pointer
+    //fseek(fl, 0, SEEK_SET); // seek back to beginning of file
 
-    char* buffer = new char[size];
-    fread(buffer, sizeof(char), size, fl);
+    //char* buffer = new char[size];
+    //fread(buffer, sizeof(char), size, fl);
 
-    QImage image((unsigned char*)buffer, 256, 256,QImage::Format_Mono);
+    //QImage image((unsigned char*)buffer, 256, 256,QImage::Format_Mono);
 
-    ui->monitor->setPixmap(QPixmap::fromImage(image));
+    //ui->monitor->setPixmap(QPixmap::fromImage(image));
 
     ui->intBaseComboBox->addItem("8");
     ui->intBaseComboBox->addItem("10");
@@ -63,7 +64,7 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
     qhe = new QHexEdit(ui->memoryTab);
     ui->memoryTab->layout()->addWidget(qhe);
 
-    QByteArray qByteArray = QByteArray::fromRawData(reinterpret_cast<const char*>(getMemoryBuf()), MEMMORY_TOTAL_SIZE);
+    QByteArray qByteArray = QByteArray::fromRawData(reinterpret_cast<const char*>(memoryGetPointer()), MEMORY_TOTAL_SIZE);
     qhe->setData(qByteArray);
 }
 
@@ -171,11 +172,16 @@ void ProcessorWindow::setRegisters(){
     this->setRegister(7, ui->r7edit);
 }
 
+#include "logo.h"
+
 void ProcessorWindow::on_runButton_clicked()
 {
     ui->txtEditor->append(QString("Button 'RUN' is pressed"));
     evalCode();
     setRegisters();
+
+    QImage image(memoryGetVideoRom(), VIDEO_HEIGHT, VIDEO_WIDTH, QImage::Format_Mono);
+    ui->monitor->setPixmap(QPixmap::fromImage(image));
 }
 
 
@@ -240,7 +246,7 @@ uint16_t sample_programm[] = {
 
 void ProcessorWindow::on_loadButton_clicked()
 {
-    memmoryInitialize();
+    systemInitialize();
 //    arrayClear();
 
 //    //temporary, while assembler works wrong
@@ -250,6 +256,7 @@ void ProcessorWindow::on_loadButton_clicked()
 ////        arraySetValue(i,sample_programm[i]);
 //    }
 
+    setProgrammStart(arrayGetValue(0));
     for (int i = 0; i < arraySize(); i+=2){
         uint16_t *procMemory = (uint16_t*) getMemory(i);
         uint16_t machineWord = arrayGetValue(i+1);
@@ -299,6 +306,6 @@ void ProcessorWindow::on_refreshMemoryButton_clicked()
 {
     //TODO refresh using some hexedit funciton (without recreate bytearray)
     //TODO auto reload by timer
-    QByteArray qByteArray = QByteArray::fromRawData(reinterpret_cast<const char*>(getMemoryBuf()), MEMMORY_TOTAL_SIZE);
+    QByteArray qByteArray = QByteArray::fromRawData(reinterpret_cast<const char*>(memoryGetPointer()), MEMORY_TOTAL_SIZE);
     qhe->setData(qByteArray);
 }

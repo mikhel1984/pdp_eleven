@@ -7,7 +7,7 @@
 
 #include "test_program.h"
 
-//#define WRITELOG
+#define WRITELOG
 
 // Flags
 
@@ -122,7 +122,7 @@ uint16_t registers[REG_NUMBER];
 uint8_t flags;
 
 //uint8_t *getMemory(uint16_t address) { return memory_ + address; }
-uint8_t *getMemory(uint16_t address) { return getMemoryBuf() + address; }
+uint8_t *getMemory(uint16_t address) { return memoryGetPointer() + address; }
 
 uint16_t *getRegister(uint8_t ind) { return registers + ind; }
 
@@ -569,7 +569,7 @@ int evalOneCycle(int *tact) {
     (*tact)++;
     writeOperands(&instruction);
 
-    timeNop(1);
+    //timeNop(1);
 
     return use_inc;
 }

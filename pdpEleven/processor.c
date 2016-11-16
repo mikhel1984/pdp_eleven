@@ -7,6 +7,8 @@
 
 #include "test_program.h"
 
+//#define WRITELOG
+
 // Flags
 
 #define _C        (1 << 0)
@@ -65,6 +67,20 @@ void print8(uint8_t val) {
     }
 }
 
+#ifdef WRITELOG
+#define LOGFILE "proc.log"
+char logging[256] = "";
+
+void writelog(const char *fname, const char *txt) {
+    FILE *file = fopen(fname, "a");
+    if(file) {
+        fprintf(file, "%s\n", txt);
+        fclose(file);
+    }
+
+}
+#endif // LOG
+
 void print16(uint16_t val) {
     int state, i;
     for(i = 15; i >= 0; --i) {
@@ -112,6 +128,12 @@ uint16_t *getRegister(uint8_t ind) { return registers + ind; }
 
 uint16_t fetchMem() {
     uint16_t addr = *getRegister(PC_REG);
+
+#ifdef WRITELOG
+    sprintf(logging, "FETCH: %o", (int) *((uint16_t*) getMemory(addr)));
+    writelog(LOGFILE, logging);
+#endif
+
     return *((uint16_t*) getMemory(addr));
 }
 
@@ -321,6 +343,11 @@ int fetchOperands(Instruction *inst) {
             *((uint16_t*) inst->dst_val) = *((uint16_t*) inst->dst_ptr);
         }
     }
+
+#ifdef WRITELOG
+    sprintf(logging, "FETCHOP: src=%o dst=%o\n", (int) inst->src_val, (int)inst->dst_val);
+    writelog(LOGFILE, logging);
+#endif
     return 1;
 
 }
@@ -335,6 +362,10 @@ int writeOperands(Instruction *inst) {
         else
             *((uint16_t*) inst->dst_ptr) = *((uint16_t*) inst->dst_val);        
     }
+#ifdef WRITELOG
+    sprintf(logging, "WRITE: src=%o dst=%o\n", (int) inst->src_val, (int)inst->dst_val);
+    writelog(LOGFILE, logging);
+#endif
     return 1;
 }
 
@@ -484,6 +515,11 @@ Instruction decode(uint16_t opcode) {
     res.src_ptr = res.dst_ptr = NULL;
     res.src_val[0] = res.src_val[1] = res.dst_val[0] = res.dst_val[1] = 0;
 
+#ifdef WRITELOG
+    sprintf(logging, "DECODE: index=%o opcode=%o", res.index, res.code);
+    writelog(LOGFILE, logging);
+#endif
+
     return res;
 }
 
@@ -506,6 +542,10 @@ int evalOneCycle(int *tact) {
 
     //printf("%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
     sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
+
+#ifdef WRITELOG
+    writelog(LOGFILE, lastInstruction);
+#endif
 
     (*tact)++;
     fetchOperands(&instruction);
@@ -554,17 +594,18 @@ void printRegisters() {
 }
 
 int testProcessor2() {
-    int tact = 0, increment = 1, i;
+    int tact = 0, increment = 1;
 
     prepareProcessor();
 
     // test string(s)
+    /*
     uint8_t *mem = (uint8_t*) programm_;
     for(i = 20; i < 108; ++i) {
         printf("%c", (char) mem[i]);
     }
     printf("\n");
-
+    */
     printRegisters();
 
     int k;
@@ -579,14 +620,14 @@ int testProcessor2() {
         if(increment)
             incrementPC();
     }
-
+    /*
     printf("\nNumber of tacts: %d\n", tact);
     printf("\n");
     for(i = 20; i < 108; ++i) {
         printf("%c", (char) mem[i]);
     }
     printf("\n");
-
+    */
     return tact;
 }
 

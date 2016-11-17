@@ -13,11 +13,8 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QPlainTextEdit>
-<<<<<<< 6439aa01a5b26e5c2676b449c4967636139f7e82
 #include "qhexedit.h"
-=======
 #include <QThread>
->>>>>>> Moved processor to other thread
 
 extern "C"
 {
@@ -50,20 +47,17 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
     ui->intBaseComboBox->addItem("16");
     ui->intBaseComboBox->setCurrentIndex(1);
 
-<<<<<<< 6439aa01a5b26e5c2676b449c4967636139f7e82
-    memmoryInitialize();
     qhe = new QHexEdit(ui->memoryTab);
     ui->memoryTab->layout()->addWidget(qhe);
 
     QByteArray qByteArray = QByteArray::fromRawData(reinterpret_cast<const char*>(memoryGetPointer()), MEMORY_TOTAL_SIZE);
     qhe->setData(qByteArray);
-=======
+
     timer = new QTimer();
     timer->setInterval(1000);
 
     connect(timer, SIGNAL(timeout()), this, SLOT(update_picture()));
     timer->start(0);
->>>>>>> Moved processor to other thread
 }
 
 ProcessorWindow::~ProcessorWindow()
@@ -87,11 +81,30 @@ void ProcessorWindow::keyPressEvent( QKeyEvent *k )
  *  Public slot
  */
 
+const char** split(QString text, int &size){
+    QStringList qstrList = text.split('\n');
+
+    const char **buf = (const char **)malloc(qstrList.size() * sizeof(const char *));
+
+    size = qstrList.size();
+    for (int i = 0; i < qstrList.size(); ++i)
+    {
+        QByteArray qarr = qstrList.at(i).toLocal8Bit();
+
+        char *str = new char[qarr.size() + 1];
+        strcpy(str, qarr.data());
+        std::cout << str << std::endl;
+        buf[i] = str;
+    }
+    return buf;
+ }
+
 void ProcessorWindow::on_assemblyButton_clicked()
 {
     QString asmText = ui->asmTextEdit->toPlainText();
 
     int length;
+    const char** buf = split(asmText, length);
 
 
 //    const char *buf[] = {
@@ -292,19 +305,17 @@ void ProcessorWindow::on_stepButton_clicked()
 {
 }
 
-<<<<<<< 6439aa01a5b26e5c2676b449c4967636139f7e82
+
 void ProcessorWindow::on_refreshMemoryButton_clicked()
 {
     //TODO refresh using some hexedit funciton (without recreate bytearray)
     //TODO auto reload by timer
     QByteArray qByteArray = QByteArray::fromRawData(reinterpret_cast<const char*>(memoryGetPointer()), MEMORY_TOTAL_SIZE);
     qhe->setData(qByteArray);
-=======
+}
+
 void ProcessorWindow::update_picture()
 {
     QImage image(memoryGetVideoRom(), VIDEO_HEIGHT, VIDEO_WIDTH, QImage::Format_Mono);
     ui->monitor->setPixmap(QPixmap::fromImage(image));
-
-    qDebug() << "Timer work!";
->>>>>>> Moved processor to other thread
 }

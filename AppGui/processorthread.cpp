@@ -2,7 +2,7 @@
 
 extern "C"
 {
-    #include "process.h"
+    #include "processor.h"
 }
 
 void ProcessorThread::process()

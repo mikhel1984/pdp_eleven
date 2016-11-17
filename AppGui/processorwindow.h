@@ -41,11 +41,9 @@ private slots:
 
     void on_stepButton_clicked();
 
-<<<<<<< 6439aa01a5b26e5c2676b449c4967636139f7e82
     void on_refreshMemoryButton_clicked();
-=======
+
     void update_picture();
->>>>>>> Moved processor to other thread
 
 private:
     Ui::ProcessorWindow *ui;

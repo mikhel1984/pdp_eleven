@@ -7,7 +7,7 @@
 
 #include "test_program.h"
 
-#define WRITELOG
+//#define WRITELOG
 
 // Flags
 
@@ -16,6 +16,8 @@
 #define CLEAR_(X) flags &= ~X
 
 #define SET_IF(F, COND) if(COND) SET_(F); else CLEAR_(F);
+
+#define PIPE_NUMBER_MAX 8
 
 // Bits
 
@@ -38,7 +40,10 @@ typedef int (*Eval)(Instruction*);
 // Vector of processor operations
 Eval functionList[OP_COUNT] = {NULL};
 
-// Data for exchanging in pipeline
+typedef enum _PIPESTEP {PIPE_FETCH, PIPE_DECODE, PIPE_FETCH_OP,
+                        PIPE_EVAL, PIPE_WRITE, PIPE_END, PIPE_HALT} PIPESTEP;
+
+// Data for exchanging and control in pipeline
 struct _Instruction {
     uint16_t code;        // instruction
     OPCODELIST index;     // index of operation
@@ -46,7 +51,20 @@ struct _Instruction {
     uint8_t dst_val[2];   // copy of destination data
     uint8_t *src_ptr;     // source address
     uint8_t *dst_ptr;     // destination address
+    // multiscalar
+    PIPESTEP step;        // current step of processing
+    PIPESTEP delay;       // delay for next pipes
+    uint8_t tacts;        // current step duration
+    uint8_t execute;      // apply method of current step (for tact elimination)    
 };
+
+Instruction initInstruction(void) {
+    Instruction inst = {0, 0, {0,0}, {0,0}, NULL, NULL, PIPE_FETCH, PIPE_FETCH, 1, 1};
+    return inst;
+}
+
+Instruction pipes[PIPE_NUMBER_MAX];
+Instruction storePipes[PIPE_NUMBER_MAX];
 
 char lastInstruction[256] = "";
 
@@ -60,6 +78,18 @@ void print8(uint8_t val) {
         printf("%d%s", state ? 1 : 0, i%4 ? "" : " ");
     }
 }
+
+void nextStep(Instruction *inst) {
+    if(inst->delay == PIPE_HALT)
+        inst->step = PIPE_HALT;
+    else
+        inst->step ++;
+
+    inst->execute = true;
+    if(inst->delay <= inst->step)
+        inst->delay = inst->step;
+}
+
 
 #ifdef WRITELOG
 #define LOGFILE "proc.log"
@@ -112,8 +142,11 @@ uint16_t sum16(uint16_t v1, uint16_t v2) {
 // pointers to memory
 
 uint16_t registers[REG_NUMBER];
-//uint8_t *memory_ = (uint8_t *) programm_;
+uint16_t storeRegisters[REG_NUMBER];
+
+uint8_t *memory_ = (uint8_t *) programm_;
 uint8_t flags;
+uint8_t storeFlags;
 
 //uint8_t *getMemory(uint16_t address) { return memory_ + address; }
 uint8_t *getMemory(uint16_t address) { return memoryGetPointer() + address; }
@@ -126,15 +159,18 @@ void setProgrammStart(uint16_t ind) {
     *getRegister(PC_REG) = ind;
 }
 
-uint16_t fetchMem() {
+// Get data from memory
+uint16_t fetchMem(Instruction *inst) {
     uint16_t addr = *getRegister(PC_REG);
-/*
-#ifdef WRITELOG
-    sprintf(logging, "FETCH: %o", (int) *((uint16_t*) getMemory(addr)));
-    writelog(LOGFILE, logging);
-#endif
-*/
-    return *((uint16_t*) getMemory(addr));
+    uint16_t opcode = *((uint16_t*) getMemory(addr));
+
+    if(inst) {
+        inst->code = opcode;
+        inst->execute = 0;
+        inst->tacts = 1;
+    }
+
+    return opcode;
 }
 
 void incrementPC() {
@@ -143,7 +179,7 @@ void incrementPC() {
 
 uint16_t nextWord(int inc) {
     if(inc) incrementPC();
-    return fetchMem();
+    return fetchMem(NULL);
 }
 
 // prepare
@@ -196,7 +232,7 @@ uint8_t* mode_4b(uint8_t ind) {
 // Index mode
 uint8_t* mode_6b(uint8_t ind) {
     incrementPC();
-    uint16_t addr = fetchMem();
+    uint16_t addr = fetchMem(NULL);
     addr += *getRegister(ind);
     return getMemory(addr);
 }
@@ -253,7 +289,7 @@ uint16_t *mode_5pc() {
 // Index deferred
 uint8_t *mode_7b(uint8_t ind) {
     incrementPC();
-    uint16_t addr = fetchMem();
+    uint16_t addr = fetchMem(NULL);
     addr += *getRegister(ind);
     addr = *((uint16_t*) getMemory(addr));
     return getMemory(addr);
@@ -321,6 +357,7 @@ uint16_t getOperand(uint16_t code, uint16_t mask) {
 int fetchOperands(Instruction *inst) {
     OPCODELIST op = inst->index;
     uint16_t mask;
+    inst->tacts = 1;
     // read if get operand
     if((mask = opcodes[op].src_mask) != 0) {
         if(opcodes[op].isbyte) {
@@ -331,6 +368,7 @@ int fetchOperands(Instruction *inst) {
             inst->src_ptr = (uint8_t*) getWord(getOperand(inst->code, mask));
             *((uint16_t*) inst->src_val) = *((uint16_t*) inst->src_ptr);
         }
+        if(ODIGIT(getOperand(inst->code, mask), 2) != 0) inst->tacts++;
     }
     // same for destination
     if((mask = opcodes[op].dst_mask) != 0) {
@@ -342,7 +380,16 @@ int fetchOperands(Instruction *inst) {
             inst->dst_ptr = (uint8_t*) getWord(getOperand(inst->code, mask));
             *((uint16_t*) inst->dst_val) = *((uint16_t*) inst->dst_ptr);
         }
+        if(ODIGIT(getOperand(inst->code, mask), 2) != 0) inst->tacts++;
     }
+
+    if(inst->delay == PIPE_EVAL)
+        incrementPC();
+
+    //if(inst->delay <= PIPE_FETCH_OP)
+    //    inst->delay = PIPE_FETCH_OP;
+
+    inst->execute = 0;
 /*
 #ifdef WRITELOG
     sprintf(logging, "FETCHOP: src=%o dst=%o", (int) inst->src_val, (int)inst->dst_val);
@@ -353,21 +400,31 @@ int fetchOperands(Instruction *inst) {
 
 }
 
+int isJump(Instruction* inst) {
+    return (inst->index >= OP_BR && inst->index <= OP_BLE) || inst->index == OP_JMP;
+}
+
 // Write data after evaluation
 int writeOperands(Instruction *inst) {
     OPCODELIST op = inst->index;
+    inst->tacts = 1;
     // write only if get destination
     if(inst->dst_ptr) {
         if(opcodes[op].isbyte)
             *(inst->dst_ptr) = *(inst->dst_val);
         else
-            *((uint16_t*) inst->dst_ptr) = *((uint16_t*) inst->dst_val);        
+            *((uint16_t*) inst->dst_ptr) = *((uint16_t*) inst->dst_val);
+        uint16_t mask = opcodes[op].dst_mask;
+        if(ODIGIT(getOperand(inst->code, mask), 2) != 0) inst->tacts++;
     }
 
-#ifdef WRITELOG
-    //sprintf(logging, "WRITE: src=%o dst=%o\n", (int) inst->src_val, (int)inst->dst_val);
+    //inst->delay = PIPE_WRITE;
+    inst->execute = 0;
+
+#ifdef WRITELOG    
     writelog(LOGFILE, "");
 #endif
+
     return 1;
 }
 
@@ -505,34 +562,60 @@ void initializeFunctions() {
 }
 
 // define opcode and operands
-Instruction decode(uint16_t opcode) {
+int decode(Instruction *res) {
     int ind = 0;
-    Instruction res;
+    //Instruction res;
+    uint16_t opcode = res->code;
 
     while(opcode >= opcodes[ind].base) { ind++; }
     ind--;
 
-    res.index = (OPCODELIST) ind;
-    res.code = opcode;
-    res.src_ptr = res.dst_ptr = NULL;
-    res.src_val[0] = res.src_val[1] = res.dst_val[0] = res.dst_val[1] = 0;
+    res->index = (OPCODELIST) ind;
+
+    if(res->index == OP_HALT) {
+        res->delay = PIPE_HALT;
+    }
+    else if(isJump(res)) {
+        res->delay = PIPE_WRITE;
+    }    
+    else if(ODIGIT(opcode, 2) == 06 || ODIGIT(opcode, 2) == 07 ||
+            ODIGIT(opcode, 4) == 06 || ODIGIT(opcode, 4) == 07) {
+        res->delay = PIPE_EVAL;
+    }    
+    else {
+        res->delay = PIPE_DECODE;
+        incrementPC();
+    }
+    res->tacts = 1;
+    res->execute = 0;
+
+    sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[res->index].name);
+
 /*
 #ifdef WRITELOG
     sprintf(logging, "DECODE: index=%o opcode=%o", res.index, res.code);
     writelog(LOGFILE, logging);
 #endif
 */
-    return res;
+
+    return 1;
 }
 
 int evalInstruction(Instruction *inst) {
-    return functionList[inst->index](inst);
+    //if(inst->delay <= PIPE_EVAL)
+    //    inst->delay = PIPE_EVAL;
+    int jmp = functionList[inst->index](inst);
+    inst->tacts = opcodes[inst->index].tacts;
+    inst->execute = 0;
+    if(inst->delay == PIPE_WRITE && jmp == 1)
+        incrementPC();
+    return jmp;
 }
 
 int evalOneCycle(int *tact) {
-    uint16_t opcode;
-    Instruction instruction;
+    //uint16_t opcode;
     int use_inc;
+    Instruction instruction = initInstruction();
 
 #ifdef WRITELOG
     sprintf(logging, "\nR0:%o R1:%o R2:%o R3:%o R4:%o R5:%o R6:%o R7:%o",
@@ -542,15 +625,14 @@ int evalOneCycle(int *tact) {
 #endif
 
     (*tact) ++;
-    opcode = fetchMem();
+    fetchMem(&instruction);
 
     (*tact) ++;
     //if(opcode == HALT) return -1;
-    instruction = decode(opcode);
+    decode(&instruction);
     if(instruction.index == OP_HALT) return -1;
 
     //printf("%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
-    sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
 
 #ifdef WRITELOG
     writelog(LOGFILE, lastInstruction);
@@ -565,9 +647,81 @@ int evalOneCycle(int *tact) {
     (*tact)++;
     writeOperands(&instruction);
 
-    //timeNop(1);
+    timeNop(1);
 
     return use_inc;
+}
+
+int evalPipeline(Instruction *inst) {
+
+    switch(inst->step) {
+    case PIPE_FETCH:
+        //puts("fetch");
+        if(inst->execute) fetchMem(inst);
+        inst->delay = PIPE_FETCH_OP;
+        if(--(inst->tacts) == 0) nextStep(inst);
+        break;
+    case PIPE_DECODE:
+        //puts("decode");
+        if(inst->execute) decode(inst);
+        if(--(inst->tacts) == 0) nextStep(inst);
+        break;
+    case PIPE_FETCH_OP:
+        //puts("fetch_operands");
+        if(inst->execute) fetchOperands(inst);
+        if(--(inst->tacts) == 0) nextStep(inst);
+        break;
+    case PIPE_EVAL:
+        //puts("evaluate");
+        if(inst->execute) evalInstruction(inst);
+        if(--(inst->tacts) == 0) nextStep(inst);
+        break;
+    case PIPE_WRITE:
+        //puts("write");
+        if(inst->execute) writeOperands(inst);
+        if(--(inst->tacts) == 0) nextStep(inst);
+        break;
+    case PIPE_END:
+        //puts("end");
+        *inst = initInstruction();
+        break;
+    case PIPE_HALT:
+        break;    
+    default:
+        break;
+    }
+
+    return 1;
+}
+
+int evalOneTact(int pipeNum) {
+
+    int canFetch = 1, n;
+    int evaluated = 0;
+
+    for(n = 0; n < pipeNum; ++n) {
+        if(pipes[n].step != pipes[n].delay || pipes[n].step == PIPE_HALT) canFetch = 0;
+    }
+
+    for(int n = 0; n < pipeNum; ++n) {
+        if(pipes[n].step == PIPE_FETCH && !canFetch)
+            continue;
+        if(pipes[n].step == PIPE_HALT) continue;
+
+        evalPipeline(pipes+n);
+        evaluated = 1;
+
+        // check possibility of read next instruction
+        canFetch = canFetch && (pipes[n].step == pipes[n].delay) && (pipes[n].step != PIPE_HALT);
+    }
+
+    return evaluated;
+}
+
+void resetPipes(void) {
+    for(int p = 0; p < PIPE_NUMBER_MAX; ++p) {
+        pipes[p]=initInstruction();
+    }
 }
 
 // Preform initial operations
@@ -575,6 +729,23 @@ void prepareProcessor() {
     initializeFunctions();
     resetFlags();
     resetRegisters();
+    resetPipes();
+}
+
+void saveState(void) {
+    int i;
+
+    storeFlags = flags;
+    for(i = 0; i < REG_NUMBER; ++i) { storeRegisters[i] = registers[i]; }
+    for(i = 0; i < PIPE_NUMBER_MAX; ++i) { storePipes[i] = pipes[i]; }
+}
+
+void restoreState(void) {
+    int i;
+
+    flags = storeFlags;
+    for(i = 0; i < REG_NUMBER; ++i) { registers[i] = storeRegisters[i]; }
+    for(i = 0; i < PIPE_NUMBER_MAX; ++i) { pipes[i] = storePipes[i]; }
 }
 
 int evalCode() {
@@ -594,6 +765,25 @@ int evalCode() {
     return tact;
 }
 
+int evalSuperscalar(int pipeNum) {
+    if(pipeNum < 1 || pipeNum > PIPE_NUMBER_MAX) return 0;
+
+    int tact = 0;
+    prepareProcessor();
+
+    while(evalOneTact(pipeNum)) {
+        tact ++;
+    }
+
+    return tact;
+}
+
+void newProgramm(uint16_t start) {
+    resetFlags();
+    resetRegisters();
+    resetPipes();
+    setProgrammStart(start);
+}
 
 
 void printRegisters() {
@@ -603,40 +793,39 @@ void printRegisters() {
 }
 
 int testProcessor2() {
-    int tact = 0, increment = 1;
+    int tact = 0, i/*, increment = 1*/;
 
     prepareProcessor();
 
     // test string(s)
-    /*
-    uint8_t *mem = (uint8_t*) programm_;
-    for(i = 20; i < 108; ++i) {
-        printf("%c", (char) mem[i]);
-    }
-    printf("\n");
-    */
+        uint8_t *mem = (uint8_t*) programm_;
+        for(i = 20; i < 108; ++i) {
+            printf("%c", (char) mem[i]);
+        }
+        printf("\n");
+
+
     printRegisters();
-
+/*
     int k;
-    for(k = 0; k < 200; ++k) {
+    for(k = 0; k < 100; ++k) {
+        evalOneTact();*/
 
-    //while(1) {
-        increment = evalOneCycle(&tact);
+    while(evalOneTact(2)) {
+        tact++;
+
         printRegisters();
-
-        if(increment == -1) break;
-
-        if(increment)
-            incrementPC();
     }
-    /*
+
     printf("\nNumber of tacts: %d\n", tact);
-    printf("\n");
-    for(i = 20; i < 108; ++i) {
-        printf("%c", (char) mem[i]);
-    }
-    printf("\n");
-    */
+        printf("\n");
+        for(i = 20; i < 108; ++i) {
+            printf("%c", (char) mem[i]);
+        }
+        printf("\n");
+
     return tact;
 }
+
+
 

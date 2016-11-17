@@ -15,6 +15,7 @@ typedef struct Opcodes {
     uint16_t dst_mask;
     uint16_t offset_mask;
     uint16_t isbyte;
+    uint16_t tacts;
     const char *name;
 } Opcodes;
 

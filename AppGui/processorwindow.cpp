@@ -13,15 +13,20 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QPlainTextEdit>
+<<<<<<< 6439aa01a5b26e5c2676b449c4967636139f7e82
 #include "qhexedit.h"
+=======
+#include <QThread>
+>>>>>>> Moved processor to other thread
 
 extern "C"
 {
     #include "memory.h"
+    #include "processor.h"
     #include "system.h"
     #include "asm.h"
     #include "arraylist.h"
-    #include "processor.h"
+    #include "processorthread.h"
     #include "memory.h"
 }
 
@@ -38,38 +43,32 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
     ui->txtEditor->setText(QString("Assemble code, Load it to memory and then press 'Run'"));
     setRegisters();
 
-    //FILE* fl = fopen("maze", "rb");
-    //FILE* fl = fopen("/Users/vansickle/work/innopolis/ca/pdp_eleven/AppGui/maze", "rb");
-    //FILE* fl = fopen("C:\\maze", "rb");
-    //if(!fl)
-    //    return ;
-
-    //fseek(fl, 0, SEEK_END); // seek to end of file
-    //int size = ftell(fl); // get current file pointer
-    //fseek(fl, 0, SEEK_SET); // seek back to beginning of file
-
-    //char* buffer = new char[size];
-    //fread(buffer, sizeof(char), size, fl);
-
-    //QImage image((unsigned char*)buffer, 256, 256,QImage::Format_Mono);
-
-    //ui->monitor->setPixmap(QPixmap::fromImage(image));
+    systemInitialize();
 
     ui->intBaseComboBox->addItem("8");
     ui->intBaseComboBox->addItem("10");
     ui->intBaseComboBox->addItem("16");
     ui->intBaseComboBox->setCurrentIndex(1);
 
+<<<<<<< 6439aa01a5b26e5c2676b449c4967636139f7e82
     memmoryInitialize();
     qhe = new QHexEdit(ui->memoryTab);
     ui->memoryTab->layout()->addWidget(qhe);
 
     QByteArray qByteArray = QByteArray::fromRawData(reinterpret_cast<const char*>(memoryGetPointer()), MEMORY_TOTAL_SIZE);
     qhe->setData(qByteArray);
+=======
+    timer = new QTimer();
+    timer->setInterval(1000);
+
+    connect(timer, SIGNAL(timeout()), this, SLOT(update_picture()));
+    timer->start(0);
+>>>>>>> Moved processor to other thread
 }
 
 ProcessorWindow::~ProcessorWindow()
 {
+    systemDestroy();
     delete ui;
 }
 
@@ -88,30 +87,11 @@ void ProcessorWindow::keyPressEvent( QKeyEvent *k )
  *  Public slot
  */
 
-const char** split(QString text, int &size){
-    QStringList qstrList = text.split('\n');
-
-    const char **buf = (const char **)malloc(qstrList.size() * sizeof(const char *));
-
-    size = qstrList.size();
-    for (int i = 0; i < qstrList.size(); ++i)
-    {
-        QByteArray qarr = qstrList.at(i).toLocal8Bit();
-
-        char *str = new char[qarr.size() + 1];
-        strcpy(str, qarr.data());
-        std::cout << str << std::endl;
-        buf[i] = str;
-    }
-    return buf;
-}
-
 void ProcessorWindow::on_assemblyButton_clicked()
 {
     QString asmText = ui->asmTextEdit->toPlainText();
 
     int length;
-    const char** buf = split(asmText, length);
 
 
 //    const char *buf[] = {
@@ -177,11 +157,21 @@ void ProcessorWindow::setRegisters(){
 void ProcessorWindow::on_runButton_clicked()
 {
     ui->txtEditor->append(QString("Button 'RUN' is pressed"));
-    evalCode();
-    setRegisters();
 
-    QImage image(memoryGetVideoRom(), VIDEO_HEIGHT, VIDEO_WIDTH, QImage::Format_Mono);
-    ui->monitor->setPixmap(QPixmap::fromImage(image));
+    pthr = new ProcessorThread();
+    QThread* thread = new QThread;
+
+    pthr->moveToThread(thread);
+
+    connect(thread, SIGNAL(started()), pthr, SLOT(process()));
+    connect(pthr, SIGNAL(finished()), thread, SLOT(quit()));
+    connect(this, SIGNAL(stopAll()), pthr, SLOT(stop()));
+    connect(pthr, SIGNAL(finished()), pthr, SLOT(deleteLater()));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+
+    thread->start();
+
+    setRegisters();
 }
 
 
@@ -302,10 +292,19 @@ void ProcessorWindow::on_stepButton_clicked()
 {
 }
 
+<<<<<<< 6439aa01a5b26e5c2676b449c4967636139f7e82
 void ProcessorWindow::on_refreshMemoryButton_clicked()
 {
     //TODO refresh using some hexedit funciton (without recreate bytearray)
     //TODO auto reload by timer
     QByteArray qByteArray = QByteArray::fromRawData(reinterpret_cast<const char*>(memoryGetPointer()), MEMORY_TOTAL_SIZE);
     qhe->setData(qByteArray);
+=======
+void ProcessorWindow::update_picture()
+{
+    QImage image(memoryGetVideoRom(), VIDEO_HEIGHT, VIDEO_WIDTH, QImage::Format_Mono);
+    ui->monitor->setPixmap(QPixmap::fromImage(image));
+
+    qDebug() << "Timer work!";
+>>>>>>> Moved processor to other thread
 }

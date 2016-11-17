@@ -25,9 +25,11 @@ else {
 }
 
 SOURCES += main.cpp\
-        processorwindow.cpp
+        processorwindow.cpp \
+    processorthread.cpp
 
-HEADERS  += processorwindow.h
+HEADERS  += processorwindow.h \
+    processorthread.h
 
 FORMS    += processorwindow.ui
 

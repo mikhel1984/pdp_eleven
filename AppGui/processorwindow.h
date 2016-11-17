@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <QLineEdit>
 #include <QKeyEvent>
+#include <QTimer>
+#include "processorthread.h"
 
 class QGraphicsScene;
 class QImage;
@@ -39,7 +41,11 @@ private slots:
 
     void on_stepButton_clicked();
 
+<<<<<<< 6439aa01a5b26e5c2676b449c4967636139f7e82
     void on_refreshMemoryButton_clicked();
+=======
+    void update_picture();
+>>>>>>> Moved processor to other thread
 
 private:
     Ui::ProcessorWindow *ui;
@@ -48,6 +54,9 @@ private:
     const uint16_t monitorWidth;
     void setRegister(int number, QLineEdit* edit);
     void setRegisters();
+
+    ProcessorThread* pthr;
+    QTimer* timer;
 };
 
 #endif // PROCESSORWINDOW_H

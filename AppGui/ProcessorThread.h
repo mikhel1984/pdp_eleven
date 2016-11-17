@@ -14,8 +14,6 @@ public slots:
 signals:
     void finished();
 
-public:
-    Processor();
 };
 
 #endif // PROCESSOR_THREAD_H

@@ -11,12 +11,6 @@
 
 // Flags
 
-#define _C        (1 << 0)
-#define _V        (1 << 1)
-#define _Z        (1 << 2)
-#define _N        (1 << 3)
-#define _T        (1 << 4)
-
 #define GET_(X)   (flags & X)
 #define SET_(X)   flags |= X
 #define CLEAR_(X) flags &= ~X
@@ -125,6 +119,8 @@ uint8_t flags;
 uint8_t *getMemory(uint16_t address) { return memoryGetPointer() + address; }
 
 uint16_t *getRegister(uint8_t ind) { return registers + ind; }
+
+uint8_t getFlags() { return flags; }
 
 void setProgrammStart(uint16_t ind) {
     *getRegister(PC_REG) = ind;

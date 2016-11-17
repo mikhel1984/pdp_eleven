@@ -56,7 +56,7 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
     timer = new QTimer();
     timer->setInterval(1000);
 
-    connect(timer, SIGNAL(timeout()), this, SLOT(update_picture()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(refreshState()));
     timer->start(0);
 }
 
@@ -298,7 +298,6 @@ void ProcessorWindow::on_loadFromFileButton_clicked()
 void ProcessorWindow::on_resetButton_clicked()
 {
     prepareProcessor();
-    setRegisters();
 }
 
 void ProcessorWindow::on_stepButton_clicked()
@@ -314,8 +313,24 @@ void ProcessorWindow::on_refreshMemoryButton_clicked()
     qhe->setData(qByteArray);
 }
 
-void ProcessorWindow::update_picture()
+void ProcessorWindow::setFlags(){
+
+   uint8_t flags = getFlags();
+   ui->zCheckBox->setChecked(flags & _Z);
+   ui->vCheckBox->setChecked(flags & _V);
+   ui->cCheckBox->setChecked(flags & _C);
+   ui->tCheckBox->setChecked(flags & _T);
+   ui->nCheckBox->setChecked(flags & _N);
+}
+
+/**
+ * @brief update Emulator state in GUI
+ */
+void ProcessorWindow::refreshState()
 {
+    setRegisters();
+    setFlags();
+
     QImage image(memoryGetVideoRom(), VIDEO_HEIGHT, VIDEO_WIDTH, QImage::Format_Mono);
     ui->monitor->setPixmap(QPixmap::fromImage(image));
 }

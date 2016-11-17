@@ -43,7 +43,7 @@ private slots:
 
     void on_refreshMemoryButton_clicked();
 
-    void update_picture();
+    void refreshState();
 
 private:
     Ui::ProcessorWindow *ui;
@@ -55,6 +55,7 @@ private:
 
     ProcessorThread* pthr;
     QTimer* timer;
+    void setFlags();
 };
 
 #endif // PROCESSORWINDOW_H

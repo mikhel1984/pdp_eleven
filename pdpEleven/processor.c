@@ -59,13 +59,13 @@ struct _Instruction {
     uint8_t *dst_ptr;     // destination address
     // multiscalar
     PIPESTEP step;        // current step of processing
+    PIPESTEP delay;       // delay for next pipes
     uint8_t tacts;        // current step duration
-    uint8_t execute;      // apply method of current step (for tact elimination)
-    PIPESTEP delay;        // delay for next pipes
+    uint8_t execute;      // apply method of current step (for tact elimination)    
 };
 
 Instruction initInstruction(void) {
-    Instruction inst = {0, 0, {0,0}, {0,0}, NULL, NULL, PIPE_FETCH, 1, 1, PIPE_FETCH};
+    Instruction inst = {0, 0, {0,0}, {0,0}, NULL, NULL, PIPE_FETCH, PIPE_FETCH, 1, 1};
     return inst;
 }
 
@@ -85,7 +85,11 @@ void print8(uint8_t val) {
 }
 
 void nextStep(Instruction *inst) {
-    inst->step ++;
+    if(inst->delay == PIPE_HALT)
+        inst->step = PIPE_HALT;
+    else
+        inst->step ++;
+
     inst->execute = true;
     if(inst->delay <= inst->step)
         inst->delay = inst->step;
@@ -561,13 +565,16 @@ int decode(Instruction *res) {
 
     res->index = (OPCODELIST) ind;
 
-    if(isJump(res)) {
-        res->delay = PIPE_WRITE;
+    if(res->index == OP_HALT) {
+        res->delay = PIPE_HALT;
     }
+    else if(isJump(res)) {
+        res->delay = PIPE_WRITE;
+    }    
     else if(ODIGIT(opcode, 2) == 06 || ODIGIT(opcode, 2) == 07 ||
             ODIGIT(opcode, 4) == 06 || ODIGIT(opcode, 4) == 07) {
         res->delay = PIPE_EVAL;
-    }
+    }    
     else {
         res->delay = PIPE_DECODE;
         incrementPC();
@@ -638,7 +645,7 @@ int evalOneCycle(int *tact) {
 }
 
 int evalPipeline(Instruction *inst) {
-    int res = 1;
+    //int res = 1;
     switch(inst->step) {
     case PIPE_FETCH:
         puts("fetch");
@@ -685,31 +692,33 @@ int evalPipeline(Instruction *inst) {
     //printf("%d %o %s\n", *getRegister(PC_REG), inst->code, opcodes[inst->index].name);
     //sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), inst->code, opcodes[inst->index].name);
 
-    return res;
+    return 1;
 }
 
 int evalOneTact(void) {
 
     int canFetch = 1, n;
+    int evaluated = 0;
 
     for(n = 0; n < PIPE_NUMBER; ++n) {
         printf("%d %d\n", pipes[n].step, pipes[n].delay);
-        if(pipes[n].step != pipes[n].delay) canFetch = 0;
+        if(pipes[n].step != pipes[n].delay || pipes[n].step == PIPE_HALT) canFetch = 0;
     }
     if(canFetch == 0) puts("can't fetch new");
 
     for(int n = 0; n < PIPE_NUMBER; ++n) {
         if(pipes[n].step == PIPE_FETCH && !canFetch)
             continue;
+        if(pipes[n].step == PIPE_HALT) continue;
 
         evalPipeline(pipes+n);
+        evaluated = 1;
 
         if(canFetch)
-            canFetch = (pipes[n].step == pipes[n].delay);
+            canFetch = (pipes[n].step == pipes[n].delay) && (pipes[n].step != PIPE_HALT);
     }
 
-    return 0;
-
+    return evaluated;
 }
 
 // Preform initial operations
@@ -762,12 +771,14 @@ int testProcessor2() {
 
 
     printRegisters();
-
+/*
     int k;
-    for(k = 0; k < 510; ++k) {
+    for(k = 0; k < 50; ++k) {
+        evalOneTact();*/
 
-        evalOneTact();
+    while(evalOneTact()) {
         printRegisters();
+        tact++;
 
     //while(1) {
         /*

@@ -23,7 +23,7 @@
 
 #define SET_IF(F, COND) if(COND) SET_(F); else CLEAR_(F);
 
-#define PIPE_NUMBER 2
+#define PIPE_NUMBER_MAX 8
 
 // Bits
 
@@ -69,7 +69,7 @@ Instruction initInstruction(void) {
     return inst;
 }
 
-Instruction pipes[PIPE_NUMBER];
+Instruction pipes[PIPE_NUMBER_MAX];
 
 char lastInstruction[256] = "";
 
@@ -166,6 +166,7 @@ uint16_t fetchMem(Instruction *inst) {
 
     if(inst) {
         inst->code = opcode;
+        inst->execute = 0;
         inst->tacts = 1;
     }
 
@@ -384,7 +385,8 @@ int fetchOperands(Instruction *inst) {
 
     //if(inst->delay <= PIPE_FETCH_OP)
     //    inst->delay = PIPE_FETCH_OP;
-    inst->tacts = 1;
+    inst->tacts = 2;
+    inst->execute = 0;
 /*
 #ifdef WRITELOG
     sprintf(logging, "FETCHOP: src=%o dst=%o", (int) inst->src_val, (int)inst->dst_val);
@@ -411,10 +413,10 @@ int writeOperands(Instruction *inst) {
     }
 
     //inst->delay = PIPE_WRITE;
-    inst->tacts = 1;
+    inst->tacts = 2;
+    inst->execute = 0;
 
-#ifdef WRITELOG
-    //sprintf(logging, "WRITE: src=%o dst=%o\n", (int) inst->src_val, (int)inst->dst_val);
+#ifdef WRITELOG    
     writelog(LOGFILE, "");
 #endif
 
@@ -580,6 +582,7 @@ int decode(Instruction *res) {
         incrementPC();
     }
     res->tacts = 1;
+    res->execute = 0;
 
     printf("%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[res->index].name);
 
@@ -597,7 +600,8 @@ int evalInstruction(Instruction *inst) {
     //if(inst->delay <= PIPE_EVAL)
     //    inst->delay = PIPE_EVAL;
     int jmp = functionList[inst->index](inst);
-    inst->tacts = 1;
+    inst->tacts = opcodes[inst->index].tacts;
+    inst->execute = 0;
     if(inst->delay == PIPE_WRITE && jmp == 1)
         incrementPC();
     return jmp;
@@ -695,18 +699,18 @@ int evalPipeline(Instruction *inst) {
     return 1;
 }
 
-int evalOneTact(void) {
+int evalOneTact(int pipeNum) {
 
     int canFetch = 1, n;
     int evaluated = 0;
 
-    for(n = 0; n < PIPE_NUMBER; ++n) {
+    for(n = 0; n < pipeNum; ++n) {
         printf("%d %d\n", pipes[n].step, pipes[n].delay);
         if(pipes[n].step != pipes[n].delay || pipes[n].step == PIPE_HALT) canFetch = 0;
     }
     if(canFetch == 0) puts("can't fetch new");
 
-    for(int n = 0; n < PIPE_NUMBER; ++n) {
+    for(int n = 0; n < pipeNum; ++n) {
         if(pipes[n].step == PIPE_FETCH && !canFetch)
             continue;
         if(pipes[n].step == PIPE_HALT) continue;
@@ -714,8 +718,8 @@ int evalOneTact(void) {
         evalPipeline(pipes+n);
         evaluated = 1;
 
-        if(canFetch)
-            canFetch = (pipes[n].step == pipes[n].delay) && (pipes[n].step != PIPE_HALT);
+        // check possibility of read next instruction
+        canFetch = canFetch && (pipes[n].step == pipes[n].delay) && (pipes[n].step != PIPE_HALT);
     }
 
     return evaluated;
@@ -727,7 +731,7 @@ void prepareProcessor() {
     resetFlags();
     resetRegisters();
 
-    for(int p = 0; p < PIPE_NUMBER; ++p) {
+    for(int p = 0; p < PIPE_NUMBER_MAX; ++p) {
         pipes[p]=initInstruction();
     }
 }
@@ -744,6 +748,19 @@ int evalCode() {
 
         if(increment)              // brake and jump return 0
             incrementPC();
+    }
+
+    return tact;
+}
+
+int evalSuperscalar(int pipeNum) {
+    if(pipeNum < 1 || pipeNum > PIPE_NUMBER_MAX) return 0;
+
+    int tact = 0;
+    prepareProcessor();
+
+    while(evalOneTact(pipeNum)) {
+        tact ++;
     }
 
     return tact;
@@ -773,23 +790,13 @@ int testProcessor2() {
     printRegisters();
 /*
     int k;
-    for(k = 0; k < 50; ++k) {
+    for(k = 0; k < 100; ++k) {
         evalOneTact();*/
 
-    while(evalOneTact()) {
-        printRegisters();
+    while(evalOneTact(2)) {
         tact++;
 
-    //while(1) {
-        /*
-        increment = evalOneCycle(&tact);
         printRegisters();
-
-        if(increment == -1) break;
-
-        if(increment)
-            incrementPC();
-        */
     }
 
     printf("\nNumber of tacts: %d\n", tact);

@@ -361,6 +361,7 @@ uint16_t getOperand(uint16_t code, uint16_t mask) {
 int fetchOperands(Instruction *inst) {
     OPCODELIST op = inst->index;
     uint16_t mask;
+    inst->tacts = 1;
     // read if get operand
     if((mask = opcodes[op].src_mask) != 0) {
         if(opcodes[op].isbyte) {
@@ -371,6 +372,7 @@ int fetchOperands(Instruction *inst) {
             inst->src_ptr = (uint8_t*) getWord(getOperand(inst->code, mask));
             *((uint16_t*) inst->src_val) = *((uint16_t*) inst->src_ptr);
         }
+        if(ODIGIT(getOperand(inst->code, mask), 2) != 0) inst->tacts++;
     }
     // same for destination
     if((mask = opcodes[op].dst_mask) != 0) {
@@ -382,6 +384,7 @@ int fetchOperands(Instruction *inst) {
             inst->dst_ptr = (uint8_t*) getWord(getOperand(inst->code, mask));
             *((uint16_t*) inst->dst_val) = *((uint16_t*) inst->dst_ptr);
         }
+        if(ODIGIT(getOperand(inst->code, mask), 2) != 0) inst->tacts++;
     }
 
     if(inst->delay == PIPE_EVAL)
@@ -389,7 +392,7 @@ int fetchOperands(Instruction *inst) {
 
     //if(inst->delay <= PIPE_FETCH_OP)
     //    inst->delay = PIPE_FETCH_OP;
-    inst->tacts = 2;
+
     inst->execute = 0;
 /*
 #ifdef WRITELOG
@@ -408,16 +411,18 @@ int isJump(Instruction* inst) {
 // Write data after evaluation
 int writeOperands(Instruction *inst) {
     OPCODELIST op = inst->index;
+    inst->tacts = 1;
     // write only if get destination
     if(inst->dst_ptr) {
         if(opcodes[op].isbyte)
             *(inst->dst_ptr) = *(inst->dst_val);
         else
-            *((uint16_t*) inst->dst_ptr) = *((uint16_t*) inst->dst_val);        
+            *((uint16_t*) inst->dst_ptr) = *((uint16_t*) inst->dst_val);
+        uint16_t mask = opcodes[op].dst_mask;
+        if(ODIGIT(getOperand(inst->code, mask), 2) != 0) inst->tacts++;
     }
 
     //inst->delay = PIPE_WRITE;
-    inst->tacts = 2;
     inst->execute = 0;
 
 #ifdef WRITELOG    
@@ -632,7 +637,6 @@ int evalOneCycle(int *tact) {
     if(instruction.index == OP_HALT) return -1;
 
     //printf("%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
-    //sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), instruction.code, opcodes[instruction.index].name);
 
 #ifdef WRITELOG
     writelog(LOGFILE, lastInstruction);
@@ -653,52 +657,43 @@ int evalOneCycle(int *tact) {
 }
 
 int evalPipeline(Instruction *inst) {
-    //int res = 1;
+
     switch(inst->step) {
     case PIPE_FETCH:
-        puts("fetch");
+        //puts("fetch");
         if(inst->execute) fetchMem(inst);
         inst->delay = PIPE_FETCH_OP;
         if(--(inst->tacts) == 0) nextStep(inst);
         break;
     case PIPE_DECODE:
-        puts("decode");
+        //puts("decode");
         if(inst->execute) decode(inst);
         if(--(inst->tacts) == 0) nextStep(inst);
         break;
     case PIPE_FETCH_OP:
-        puts("fetch_operands");
+        //puts("fetch_operands");
         if(inst->execute) fetchOperands(inst);
         if(--(inst->tacts) == 0) nextStep(inst);
         break;
     case PIPE_EVAL:
-        puts("evaluate");
+        //puts("evaluate");
         if(inst->execute) evalInstruction(inst);
         if(--(inst->tacts) == 0) nextStep(inst);
         break;
     case PIPE_WRITE:
-        puts("write");
+        //puts("write");
         if(inst->execute) writeOperands(inst);
         if(--(inst->tacts) == 0) nextStep(inst);
         break;
     case PIPE_END:
-        puts("end");
-        //inst->step = PIPE_FREE;
-        //inst->delay = PIPE_FREE;
+        //puts("end");
         *inst = initInstruction();
         break;
     case PIPE_HALT:
-        break;
-    //case PIPE_FREE:
-    //    puts("free");
-    //    *inst = initInstruction();
-    //    break;
+        break;    
     default:
         break;
     }
-
-    //printf("%d %o %s\n", *getRegister(PC_REG), inst->code, opcodes[inst->index].name);
-    //sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), inst->code, opcodes[inst->index].name);
 
     return 1;
 }
@@ -709,10 +704,8 @@ int evalOneTact(int pipeNum) {
     int evaluated = 0;
 
     for(n = 0; n < pipeNum; ++n) {
-        printf("%d %d\n", pipes[n].step, pipes[n].delay);
         if(pipes[n].step != pipes[n].delay || pipes[n].step == PIPE_HALT) canFetch = 0;
     }
-    if(canFetch == 0) puts("can't fetch new");
 
     for(int n = 0; n < pipeNum; ++n) {
         if(pipes[n].step == PIPE_FETCH && !canFetch)

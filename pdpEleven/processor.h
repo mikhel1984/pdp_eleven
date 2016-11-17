@@ -26,7 +26,7 @@ extern int evalOneTact(int pipeNum);
 extern void saveState(void);
 // restore last saved processor state
 extern void restoreState(void);
-
+// clean data, set initial address
 extern void newProgramm(uint16_t start);
 
 // last instruction after decoding

@@ -383,11 +383,8 @@ int fetchOperands(Instruction *inst) {
         if(ODIGIT(getOperand(inst->code, mask), 2) != 0) inst->tacts++;
     }
 
-    if(inst->delay == PIPE_EVAL)
+    if(inst->execute && inst->delay == PIPE_EVAL)
         incrementPC();
-
-    //if(inst->delay <= PIPE_FETCH_OP)
-    //    inst->delay = PIPE_FETCH_OP;
 
     inst->execute = 0;
 /*
@@ -418,7 +415,6 @@ int writeOperands(Instruction *inst) {
         if(ODIGIT(getOperand(inst->code, mask), 2) != 0) inst->tacts++;
     }
 
-    //inst->delay = PIPE_WRITE;
     inst->execute = 0;
 
 #ifdef WRITELOG    
@@ -584,7 +580,8 @@ int decode(Instruction *res) {
     }    
     else {
         res->delay = PIPE_DECODE;
-        incrementPC();
+        if(res->execute)
+            incrementPC();
     }
     res->tacts = 1;
     res->execute = 0;
@@ -602,13 +599,12 @@ int decode(Instruction *res) {
 }
 
 int evalInstruction(Instruction *inst) {
-    //if(inst->delay <= PIPE_EVAL)
-    //    inst->delay = PIPE_EVAL;
+
     int jmp = functionList[inst->index](inst);
-    inst->tacts = opcodes[inst->index].tacts;
-    inst->execute = 0;
-    if(inst->delay == PIPE_WRITE && jmp == 1)
+    inst->tacts = opcodes[inst->index].tacts;    
+    if(inst->execute && inst->delay == PIPE_WRITE && jmp == 1)
         incrementPC();
+    inst->execute = 0;
     return jmp;
 }
 
@@ -623,12 +619,13 @@ int evalOneCycle(int *tact) {
             registers[5], registers[6], registers[7]);
     writelog(LOGFILE, logging);
 #endif
-
+    instruction.execute = 0;
     (*tact) ++;
     fetchMem(&instruction);
 
     (*tact) ++;
-    //if(opcode == HALT) return -1;
+
+    instruction.execute = 0;
     decode(&instruction);
     if(instruction.index == OP_HALT) return -1;
 
@@ -639,15 +636,18 @@ int evalOneCycle(int *tact) {
 #endif
 
     (*tact)++;
+    instruction.execute = 0;
     fetchOperands(&instruction);
 
     (*tact)++;
+    instruction.execute = 0;
     use_inc = evalInstruction(&instruction);
 
     (*tact)++;
+    instruction.execute = 0;
     writeOperands(&instruction);
 
-    timeNop(1);
+    //timeNop(1);
 
     return use_inc;
 }

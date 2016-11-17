@@ -70,6 +70,7 @@ Instruction initInstruction(void) {
 }
 
 Instruction pipes[PIPE_NUMBER_MAX];
+Instruction storePipes[PIPE_NUMBER_MAX];
 
 char lastInstruction[256] = "";
 
@@ -147,8 +148,11 @@ uint16_t sum16(uint16_t v1, uint16_t v2) {
 // pointers to memory
 
 uint16_t registers[REG_NUMBER];
+uint16_t storeRegisters[REG_NUMBER];
+
 uint8_t *memory_ = (uint8_t *) programm_;
 uint8_t flags;
+uint8_t storeFlags;
 
 uint8_t *getMemory(uint16_t address) { return memory_ + address; }
 //uint8_t *getMemory(uint16_t address) { return getMemoryBuf() + address; }
@@ -584,7 +588,7 @@ int decode(Instruction *res) {
     res->tacts = 1;
     res->execute = 0;
 
-    printf("%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[res->index].name);
+    sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[res->index].name);
 
 /*
 #ifdef WRITELOG
@@ -628,7 +632,7 @@ int evalOneCycle(int *tact) {
     if(instruction.index == OP_HALT) return -1;
 
     //printf("%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
-    sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), instruction.code, opcodes[instruction.index].name);
+    //sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), instruction.code, opcodes[instruction.index].name);
 
 #ifdef WRITELOG
     writelog(LOGFILE, lastInstruction);
@@ -725,15 +729,34 @@ int evalOneTact(int pipeNum) {
     return evaluated;
 }
 
+void resetPipes(void) {
+    for(int p = 0; p < PIPE_NUMBER_MAX; ++p) {
+        pipes[p]=initInstruction();
+    }
+}
+
 // Preform initial operations
 void prepareProcessor() {    
     initializeFunctions();
     resetFlags();
     resetRegisters();
+    resetPipes();
+}
 
-    for(int p = 0; p < PIPE_NUMBER_MAX; ++p) {
-        pipes[p]=initInstruction();
-    }
+void saveState(void) {
+    int i;
+
+    storeFlags = flags;
+    for(i = 0; i < REG_NUMBER; ++i) { storeRegisters[i] = registers[i]; }
+    for(i = 0; i < PIPE_NUMBER_MAX; ++i) { storePipes[i] = pipes[i]; }
+}
+
+void restoreState(void) {
+    int i;
+
+    flags = storeFlags;
+    for(i = 0; i < REG_NUMBER; ++i) { registers[i] = storeRegisters[i]; }
+    for(i = 0; i < PIPE_NUMBER_MAX; ++i) { pipes[i] = storePipes[i]; }
 }
 
 int evalCode() {
@@ -766,6 +789,12 @@ int evalSuperscalar(int pipeNum) {
     return tact;
 }
 
+void newProgramm(uint16_t start) {
+    resetFlags();
+    resetRegisters();
+    resetPipes();
+    setProgrammStart(start);
+}
 
 
 void printRegisters() {

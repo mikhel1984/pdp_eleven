@@ -154,8 +154,8 @@ uint8_t *memory_ = (uint8_t *) programm_;
 uint8_t flags;
 uint8_t storeFlags;
 
-uint8_t *getMemory(uint16_t address) { return memory_ + address; }
-//uint8_t *getMemory(uint16_t address) { return getMemoryBuf() + address; }
+//uint8_t *getMemory(uint16_t address) { return memory_ + address; }
+uint8_t *getMemory(uint16_t address) { return getMemoryBuf() + address; }
 
 uint16_t *getRegister(uint8_t ind) { return registers + ind; }
 

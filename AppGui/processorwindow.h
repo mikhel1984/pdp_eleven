@@ -53,6 +53,8 @@ private slots:
 
     void on_clearMemoryButton_clicked();
 
+    void on_jumpButton_clicked();
+
 private:
     Ui::ProcessorWindow *ui;
 

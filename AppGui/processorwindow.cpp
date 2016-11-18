@@ -371,3 +371,13 @@ void ProcessorWindow::on_clearMemoryButton_clicked()
 //    qhe->setCursorPosition(Q_INT64_C(0x4000));
 //    qhe->setAddressOffset(Q_INT64_C(0x4000));
 }
+
+void ProcessorWindow::on_jumpButton_clicked()
+{
+    bool ok;
+    qint64 hex = ui->offsetSearch->text().toLongLong(&ok, 16);
+
+    if(ok)
+//        qhe->setCursorPosition(hex);
+        qhe->setAddressOffset(hex);
+}

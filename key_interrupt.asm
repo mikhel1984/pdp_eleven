@@ -24,7 +24,7 @@ kdraw:
    mul #10, r0
    add fonts, r0
 ;
-   l1: movb (r0)+, r1
+   l1: movb (r0)+, (r1)
       add #40, r1
       dec r2
       bne l1
@@ -35,8 +35,7 @@ kdraw:
    mov (sp)+, r3 ; pop from stack
    rti
 ;
-application:
-   l2: nop
-      br l2
+application: nop
+      br application
 ;
 .end start

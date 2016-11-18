@@ -24,6 +24,7 @@ void processCmdBne(CmdStructPtr cmd);
 void processCmdInc(CmdStructPtr cmd);
 void processCmdDec(CmdStructPtr cmd);
 void processCmdHalt(CmdStructPtr);
+void processCmdRti(CmdStructPtr);
 
 const FuncConvertCmd funcConvertCmd[CMD_TOTAL] = {
     &processCmdMov,
@@ -34,7 +35,8 @@ const FuncConvertCmd funcConvertCmd[CMD_TOTAL] = {
     &processCmdBne,
     &processCmdInc,
     &processCmdDec,
-    &processCmdHalt
+    &processCmdHalt,
+    &processCmdRti
 };
 
 
@@ -60,6 +62,7 @@ const char* getCommandName(int type)
         case CMD_INC : return "inc";
         case CMD_DEC : return "dec";
         case CMD_HALT: return "halt";
+        case CMD_RTI : return "rti";
         default:       return "";
     }
 }
@@ -86,6 +89,7 @@ int convertCmdType(const char* str)
     else if(strCompare(str, "bne")  ) return CMD_BNE;
     else if(strCompare(str, "done:")) return CMD_HALT;
     else if(strCompare(str, "beq")  ) return CMD_BEQ;
+    else if(strCompare(str, "rti")  ) return CMD_RTI;
     else                              return CMD_UNKNOWN;
 }
 
@@ -211,6 +215,14 @@ void processCmdHalt(CmdStructPtr cmd)
 
     arrayPush(cmd->address);
     arrayPush(opcodes[OP_HALT].base);
+
+    cmd->address += 2;
+}
+
+void processCmdRti(CmdStructPtr cmd)
+{
+    arrayPush(cmd->address);
+    arrayPush(opcodes[OP_RTI].base);
 
     cmd->address += 2;
 }

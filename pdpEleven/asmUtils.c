@@ -4,6 +4,11 @@
 #include "utils.h"
 #include "asmCommandHandler.h"
 
+BOOL isComment(const char* str)
+{
+    return str[0] == ';' ? TRUE : FALSE;
+}
+
 BOOL isRegister(const char* name)
 {
     int i;

@@ -17,6 +17,8 @@ extern int eval();
 extern int evalCode();
 // evaluate one group of instructions (from fetch to write)
 extern int evalOneCycle();
+// evaluare one group of instructions - to external call (incl PC incr)
+extern int evalStep();
 // return register state
 extern uint16_t *getRegister(uint8_t ind);
 // return flags

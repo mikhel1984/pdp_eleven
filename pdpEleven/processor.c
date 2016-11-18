@@ -445,7 +445,8 @@ void delay(int tacts) {
 // Simulate tacts and increase count
 void simTacts(int tacts) {
     tactCounter += tacts;
-    delay(tacts);
+    if(tacts > 0)
+        delay(tacts);
 }
 
 
@@ -761,6 +762,21 @@ void restoreState(void) {
     flags = storeFlags;
     for(i = 0; i < REG_NUMBER; ++i) { registers[i] = storeRegisters[i]; }
     for(i = 0; i < PIPE_NUMBER_MAX; ++i) { pipes[i] = storePipes[i]; }
+}
+
+int evalStep(){
+    int increment = evalOneCycle();
+
+    if(increment == -1) {
+        // get HALT instruction
+        simTacts(-2); //remove HALT effect on tacts
+        return -1;
+    }
+
+    if(increment)              // brake and jump return 0
+        incrementPC();
+
+    return tactCounter;
 }
 
 int evalCode() {

@@ -11,6 +11,8 @@ void loadLogo(void);
 
 BOOL systemInitialize(void)
 {
+    prepareProcessor();
+
     if(!memmoryInitialize())
         return FALSE;
 

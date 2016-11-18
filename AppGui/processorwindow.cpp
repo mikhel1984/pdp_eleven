@@ -306,8 +306,8 @@ void ProcessorWindow::on_resetButton_clicked()
 
 void ProcessorWindow::on_stepButton_clicked()
 {
+    evalStep();
 }
-
 
 void ProcessorWindow::refreshMemory()
 {

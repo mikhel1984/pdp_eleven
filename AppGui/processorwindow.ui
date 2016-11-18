@@ -27,7 +27,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="mainTab">
        <attribute name="title">
@@ -93,8 +93,16 @@
                </item>
                <item row="0" column="1">
                 <widget class="QLineEdit" name="r0edit">
+                 <property name="font">
+                  <font>
+                   <family>Courier New</family>
+                  </font>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
                  <property name="readOnly">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                  <property name="clearButtonEnabled">
                   <bool>false</bool>
@@ -102,7 +110,16 @@
                 </widget>
                </item>
                <item row="1" column="3">
-                <widget class="QLineEdit" name="r4edit"/>
+                <widget class="QLineEdit" name="r4edit">
+                 <property name="font">
+                  <font>
+                   <family>Courier New</family>
+                  </font>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
                </item>
                <item row="2" column="2">
                 <widget class="QLabel" name="label_4">
@@ -112,7 +129,16 @@
                 </widget>
                </item>
                <item row="2" column="3">
-                <widget class="QLineEdit" name="r5edit"/>
+                <widget class="QLineEdit" name="r5edit">
+                 <property name="font">
+                  <font>
+                   <family>Courier New</family>
+                  </font>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
                </item>
                <item row="2" column="0">
                 <widget class="QLabel" name="r2label">
@@ -122,7 +148,16 @@
                 </widget>
                </item>
                <item row="2" column="1">
-                <widget class="QLineEdit" name="r2edit"/>
+                <widget class="QLineEdit" name="r2edit">
+                 <property name="font">
+                  <font>
+                   <family>Courier New</family>
+                  </font>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
                </item>
                <item row="0" column="2">
                 <widget class="QLabel" name="label_5">
@@ -132,7 +167,16 @@
                 </widget>
                </item>
                <item row="0" column="3">
-                <widget class="QLineEdit" name="r3edit"/>
+                <widget class="QLineEdit" name="r3edit">
+                 <property name="font">
+                  <font>
+                   <family>Courier New</family>
+                  </font>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
                </item>
                <item row="0" column="0">
                 <widget class="QLabel" name="r0label">
@@ -142,7 +186,16 @@
                 </widget>
                </item>
                <item row="1" column="1">
-                <widget class="QLineEdit" name="r1edit"/>
+                <widget class="QLineEdit" name="r1edit">
+                 <property name="font">
+                  <font>
+                   <family>Courier New</family>
+                  </font>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
                </item>
                <item row="1" column="0">
                 <widget class="QLabel" name="r1label">
@@ -159,10 +212,28 @@
                 </widget>
                </item>
                <item row="0" column="5">
-                <widget class="QLineEdit" name="r6edit"/>
+                <widget class="QLineEdit" name="r6edit">
+                 <property name="font">
+                  <font>
+                   <family>Courier New</family>
+                  </font>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
                </item>
                <item row="1" column="5">
-                <widget class="QLineEdit" name="r7edit"/>
+                <widget class="QLineEdit" name="r7edit">
+                 <property name="font">
+                  <font>
+                   <family>Courier New</family>
+                  </font>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>

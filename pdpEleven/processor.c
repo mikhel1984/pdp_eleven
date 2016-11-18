@@ -647,7 +647,7 @@ int evalOneCycle(int *tact) {
     instruction.execute = 0;
     writeOperands(&instruction);
 
-    //timeNop(1);
+    timeNop(3);
 
     return use_inc;
 }

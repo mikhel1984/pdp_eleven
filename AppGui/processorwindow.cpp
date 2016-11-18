@@ -42,10 +42,11 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
 
     systemInitialize();
 
+    ui->intBaseComboBox->addItem("2");
     ui->intBaseComboBox->addItem("8");
     ui->intBaseComboBox->addItem("10");
     ui->intBaseComboBox->addItem("16");
-    ui->intBaseComboBox->setCurrentIndex(1);
+    ui->intBaseComboBox->setCurrentIndex(2);
 
     qhe = new QHexEdit(ui->memoryTab);
     ui->memoryTab->layout()->addWidget(qhe);

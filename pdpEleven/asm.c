@@ -46,7 +46,7 @@ int assembly(const char* text[], int size)
     {
         str = strTrim(text[index]);
 
-        if((str[0] == ';'))
+        if(isComment(str))
             continue;
         else if(isExpression(str))
         {
@@ -83,6 +83,10 @@ void convertProgram(const char* text[], int size)
     for(i = 0; i < size; i++)
     {
         str = strTrim(text[i]);
+
+        if(isComment(str))
+            continue;
+
         parseCommand(str, &cmd);
 
         funcConvertCmd[cmd.cmd](&cmd);
@@ -201,7 +205,7 @@ int parseCommand(const char* str, CmdStructPtr cmd)
 
     str = strTrim(str);
 
-    err = sscanf(str, "%s %[^','], %s",
+    err = sscanf(str, "%s %[^','], %[^';']",
                      cmdName, param1, param2);
 
     cmd->cmd = convertCmdType(cmdName);

@@ -4,6 +4,7 @@
 
 #include "common.h"
 
+BOOL isComment(const char* str);
 BOOL isRegister(const char* name);
 BOOL isMacro(const char* macro);
 BOOL isReserveName(const char *name);

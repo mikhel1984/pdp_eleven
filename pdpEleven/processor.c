@@ -289,11 +289,11 @@ uint8_t *mode_5b(uint8_t ind) {
 uint16_t *mode_5(uint8_t ind) {
     return (uint16_t*) mode_5b(ind);
 }
-uint16_t *mode_5pc() {
-    *getRegister(PC_REG) += 2;
+uint16_t *mode_6pc() {
+    *getRegister(PC_REG) += 2;    
     uint16_t addr = *((uint16_t*) getMemory(*getRegister(PC_REG)));
     *getRegister(PC_REG) += 2;
-    addr += *getRegister(PC_REG);
+    addr += *getRegister(PC_REG);    
     return (uint16_t *) getMemory(addr);
 }
 
@@ -309,7 +309,7 @@ uint16_t *mode_7(uint8_t ind) {
     return (uint16_t*) mode_7b(ind);
 }
 uint16_t *mode_7pc() {
-    uint16_t addr = *mode_5pc();
+    uint16_t addr = *mode_6pc();
     return (uint16_t *) getMemory(addr);
 }
 
@@ -323,9 +323,9 @@ uint16_t* getWord(uint16_t op) {
     case 03:
         return (ODIGIT(op,0) == 07) ? mode_3pc() : mode_3(ODIGIT(op,0));
     case 04: return mode_4(ODIGIT(op,0));
-    case 05:
-        return (ODIGIT(op,0) == 07) ? mode_5pc() : mode_5(ODIGIT(op,0));
-    case 06: return mode_6(ODIGIT(op,0));
+    case 05: return mode_5(ODIGIT(op,0));
+    case 06:
+        return (ODIGIT(op,0) == 07) ? mode_6pc() : mode_6(ODIGIT(op,0));
     case 07:
         return (ODIGIT(op,0) == 07) ? mode_7pc() : mode_7(ODIGIT(op,0));
     default:
@@ -535,8 +535,8 @@ int mul16(Instruction *inst) {
     CLEAR_(_V);
     int tmp;
     uint16_t *src = (uint16_t*) inst->src_val, *dst = (uint16_t*) inst->dst_val;
-    tmp = (*src) * (*dst);
-    (*dst) *= (*src);
+    tmp = (*src) * (*dst);    
+    *dst = (uint16_t) tmp;
     SET_IF(_N, IS_BYTE(*dst));
     SET_IF(_Z, (*dst) == 0);
     SET_IF(_C, abs(tmp) > 0100000);
@@ -573,8 +573,8 @@ int br8(Instruction *inst) {
     return 0;
 }
 
-int jmp(Instruction *inst) {
-    uint16_t *val = (uint16_t*) inst->src_val;
+int jmp(Instruction *inst) {    
+    uint16_t *val = (uint16_t*) inst->src_val;        
     *getRegister(PC_REG) = *val;
     return 0;
 }
@@ -651,7 +651,7 @@ int decode(Instruction *res) {
     res->tacts = 1;
     res->execute = 0;
 
-    sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[res->index].name);
+    sprintf(lastInstruction, "%o %o %s\n", *getRegister(PC_REG), opcode, opcodes[res->index].name);
 
 /*
 #ifdef WRITELOG
@@ -876,11 +876,14 @@ void printRegisters() {
             registers[5], registers[6], registers[7]);
 }
 
+#define TEST_ARRAY programm2
+
 int testProcessor2() {
     int tact = 0, i/*, increment = 1*/;
+    memmoryInitialize();
 
     prepareProcessor();
-
+/*
     // test string(s)
         uint8_t *mem = (uint8_t*) programm_;
         for(i = 20; i < 108; ++i) {
@@ -888,25 +891,45 @@ int testProcessor2() {
         }
         printf("\n");
 
+  */
+    // copy sample
+    int start = 01000;
+    uint16_t *mptr = (uint16_t*) getMemory(start);
+    for(i = 0; i < sizeof(TEST_ARRAY)/sizeof(uint16_t); i++) {
+        //printf("%d\n", i);
+        *mptr = TEST_ARRAY[i];
+        mptr++;
+    }
+    // initialize
+    setProgrammStart(start+012);
+    setProgrammStack(05670);
+
+    *getMemory(0177562) = 010;
 
     printRegisters();
-/*
-    int k;
+
+    int k, inc;
     for(k = 0; k < 100; ++k) {
-        evalOneTact();*/
-
-    while(evalOneTact(2)) {
+        inc = evalOneCycle(&tact);
+        puts(lastInstruction);
+        if(inc == -1) break;
+        if(inc) incrementPC();
+/*
+    while(evalOneTact(1)) {
         tact++;
-
+*/
         printRegisters();
     }
-
+/*
     printf("\nNumber of tacts: %d\n", tact);
         printf("\n");
         for(i = 20; i < 108; ++i) {
             printf("%c", (char) mem[i]);
         }
         printf("\n");
+
+*/
+    memmoryDestroy();
 
     return tact;
 }

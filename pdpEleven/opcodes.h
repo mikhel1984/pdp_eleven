@@ -30,6 +30,7 @@ typedef enum _OPCODELIST {
     OP_RTT,
     OP_JMP,
     OP_RTS,
+    OP_NOP,
     OP_CLC,
     OP_SEC,
     OP_SWAB,

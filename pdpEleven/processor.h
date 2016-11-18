@@ -25,6 +25,8 @@ extern uint8_t *getMemory(uint16_t ind);
 // set first instruction of programm
 extern void setProgrammStart(uint16_t ind);
 
+extern void setProgrammStack(uint16_t ind);
+
 // evaluate programm with various number of pipelines
 extern int evalSuperscalar(int pipeNum);
 // evaluate one tact of all pipelines

@@ -4,6 +4,7 @@
 #include "opcodes.h"
 #include "memory.h"
 #include <time.h>
+#include <stdlib.h>
 
 #include "test_program.h"
 
@@ -32,6 +33,7 @@
 #define IS_BYTE(X)   (X >> SHIFT15)
 
 #define PC_REG   07
+#define SP_REG   06
 #define REG_NUMBER 8
 
 typedef struct _Instruction Instruction;
@@ -133,10 +135,10 @@ uint16_t convert16t(uint8_t val) {
     }
     return (uint16_t) val;
 }
-
+/*
 uint16_t sum16(uint16_t v1, uint16_t v2) {
     return v1 + v2;
-}
+}*/
 
 //                      MEMORY
 // pointers to memory
@@ -157,6 +159,10 @@ uint8_t getFlags() { return flags; }
 
 void setProgrammStart(uint16_t ind) {
     *getRegister(PC_REG) = ind;
+}
+
+void setProgrammStack(uint16_t ind) {
+    *getRegister(SP_REG) = ind;
 }
 
 // Get data from memory
@@ -505,6 +511,33 @@ int mov16(Instruction *inst) {
     return 1;
 }
 
+int add16(Instruction *inst) {
+    int start_sign = -1, res_sign;
+    uint16_t *src = (uint16_t*) inst->src_val, *dst = (uint16_t*) inst->dst_val;
+    if(IS_BYTE(*src) == IS_BYTE(*dst)) {
+        start_sign = IS_BYTE(*src);
+    }
+    *dst += *src;
+    res_sign = IS_BYTE(*dst);
+    SET_IF(_N, res_sign);
+    SET_IF(_Z, *dst == 0);
+    SET_IF(_V, start_sign != -1 && res_sign != start_sign);
+    CLEAR_(_C); /* TODO: correct */
+    return 1;
+}
+
+int mul16(Instruction *inst) {
+    CLEAR_(_V);
+    int tmp;
+    uint16_t *src = (uint16_t*) inst->src_val, *dst = (uint16_t*) inst->dst_val;
+    tmp = (*src) * (*dst);
+    (*dst) *= (*src);
+    SET_IF(_N, IS_BYTE(*dst));
+    SET_IF(_Z, (*dst) == 0);
+    SET_IF(_C, abs(tmp) > 0100000);
+    return 1;
+}
+
 int beq8(Instruction *inst) {
     if(GET_(_Z)) {        
         uint8_t val = (uint8_t) getOperand(inst->code, opcodes[inst->index].offset_mask);
@@ -534,6 +567,17 @@ int br8(Instruction *inst) {
     *pc += 02 + offset + offset;
     return 0;
 }
+
+int jmp(Instruction *inst) {
+    uint16_t *val = (uint16_t*) inst->src_val;
+    *getRegister(PC_REG) = *val;
+    return 0;
+}
+
+int nop(Instruction *inst) {
+    return 1;
+}
+
 // if function is not implemented
 int gag(Instruction *inst) {
     return inst ? 1 : 0;
@@ -548,9 +592,13 @@ void initializeFunctions() {
     functionList[OP_DECB] = dec8;
     functionList[OP_MOV] = mov16;
     functionList[OP_MOVB] = mov8;
+    functionList[OP_ADD] = add16;
+    functionList[OP_MUL] = mul16;
     functionList[OP_BEQ] = beq8;
     functionList[OP_BNE] = bne8;
     functionList[OP_BR] = br8;
+    functionList[OP_JMP] = jmp;
+    functionList[OP_NOP] = nop;
     int i = 0;
     for(i = 0; i < OP_COUNT; ++i) {
         if(!functionList[i]) functionList[i] = gag;

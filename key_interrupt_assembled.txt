@@ -8,8 +8,8 @@
 001000  012737        mov #kdraw,@#kbdaddr ; write our handle to IVT
 001002  001012
 001004  000060
-001006  000167        jmp application
-001010  000060
+001006  000127        jmp #application
+001010  001072
                     ;
                     ; handle keyboard interrupt
                     ;   
@@ -27,8 +27,8 @@
                     ;
 001036  070027         mul #10, r0
 001040  000010
-001042  066700         add fonts, r0
-001044  175732
+001042  062700         add #fonts, r0
+001044  177000
                     ;
 001046  112001         l1: movb (r0)+, r1
 001050  062701            add #40, r1
@@ -42,7 +42,7 @@
 001066  012603         mov (sp)+, r3 ; pop from stack
 001070  000002         rti
                     ;
-001072  000240         l2: nop
-001074  000776            br l2
+001072  000240      application: nop
+001074  000776            br application
                     ;
                     .end start

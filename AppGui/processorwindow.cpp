@@ -59,6 +59,9 @@ ProcessorWindow::ProcessorWindow(QWidget *parent)
 
     connect(timer, SIGNAL(timeout()), this, SLOT(refreshState()));
     timer->start(0);
+
+    ui->modeComboBox->addItem("Classic", QVariant(0));
+    ui->modeComboBox->addItem("Superscalar", QVariant(1));
 }
 
 ProcessorWindow::~ProcessorWindow()
@@ -334,4 +337,22 @@ void ProcessorWindow::refreshState()
 
     QImage image(memoryGetVideoRom(), VIDEO_HEIGHT, VIDEO_WIDTH, QImage::Format_Mono);
     ui->monitor->setPixmap(QPixmap::fromImage(image));
+
+    ui->tactCountLabel->setText(QString::number(getTactCount()));
+}
+
+void ProcessorWindow::on_modeComboBox_activated(int index)
+{
+    QVariant qvar = ui->modeComboBox->itemData(index);
+    setCpuMode(qvar.toInt());
+}
+
+void ProcessorWindow::on_pipelinesCountSpinBox_valueChanged(int arg1)
+{
+    setPipelines(arg1);
+}
+
+void ProcessorWindow::on_delaySpinBox_valueChanged(int arg1)
+{
+    setTactDelay(arg1);
 }

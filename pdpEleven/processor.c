@@ -34,6 +34,12 @@
 #define PC_REG   07
 #define REG_NUMBER 8
 
+int cpuMode = 0;
+int pipelinesCount = 1;
+int tactDelay = 0;
+
+int tactCounter = 0;
+
 typedef struct _Instruction Instruction;
 typedef int (*Eval)(Instruction*);
 
@@ -425,15 +431,21 @@ int writeOperands(Instruction *inst) {
 }
 
 // Delay processor frequency
-void timeNop(uint8_t t_ms) {
+void delay(int tacts) {
     clock_t t0 = clock();
+
     long i = 1;
-    int delay = t_ms * CLOCKS_PER_SEC / 1000;
+    int delay = tacts * tactDelay * CLOCKS_PER_SEC / 1000;
 
     while(clock() < t0 + delay) {
         i += 1;
     }
+}
 
+// Simulate tacts and increase count
+void simTacts(int tacts) {
+    tactCounter += tacts;
+    delay(tacts);
 }
 
 
@@ -608,7 +620,7 @@ int evalInstruction(Instruction *inst) {
     return jmp;
 }
 
-int evalOneCycle(int *tact) {
+int evalOneCycle() {
     //uint16_t opcode;
     int use_inc;
     Instruction instruction = initInstruction();
@@ -620,10 +632,10 @@ int evalOneCycle(int *tact) {
     writelog(LOGFILE, logging);
 #endif
     instruction.execute = 0;
-    (*tact) ++;
+    simTacts(1);
     fetchMem(&instruction);
 
-    (*tact) ++;
+    simTacts(1);
 
     instruction.execute = 0;
     decode(&instruction);
@@ -635,19 +647,17 @@ int evalOneCycle(int *tact) {
     writelog(LOGFILE, lastInstruction);
 #endif
 
-    (*tact)++;
+    simTacts(1);
     instruction.execute = 0;
     fetchOperands(&instruction);
 
-    (*tact)++;
+    simTacts(1);
     instruction.execute = 0;
     use_inc = evalInstruction(&instruction);
 
-    (*tact)++;
+    simTacts(1);
     instruction.execute = 0;
     writeOperands(&instruction);
-
-    timeNop(3);
 
     return use_inc;
 }
@@ -724,12 +734,17 @@ void resetPipes(void) {
     }
 }
 
+void resetTactCounter(void) {
+    tactCounter = 0;
+}
+
 // Preform initial operations
 void prepareProcessor() {    
     initializeFunctions();
     resetFlags();
     resetRegisters();
     resetPipes();
+    resetTactCounter();
 }
 
 void saveState(void) {
@@ -749,12 +764,12 @@ void restoreState(void) {
 }
 
 int evalCode() {
-    int tact = 0, increment = 1;
+    int increment = 1;
 
     prepareProcessor();
 
     while(1) {
-        increment = evalOneCycle(&tact);
+        increment = evalOneCycle();
 
         if(increment == -1) break; // get HALT instruction
 
@@ -762,20 +777,19 @@ int evalCode() {
             incrementPC();
     }
 
-    return tact;
+    return tactCounter;
 }
 
 int evalSuperscalar(int pipeNum) {
     if(pipeNum < 1 || pipeNum > PIPE_NUMBER_MAX) return 0;
 
-    int tact = 0;
     prepareProcessor();
 
     while(evalOneTact(pipeNum)) {
-        tact ++;
+        simTacts(1);
     }
 
-    return tact;
+    return tactCounter;
 }
 
 void newProgramm(uint16_t start) {
@@ -828,4 +842,33 @@ int testProcessor2() {
 }
 
 
+int eval()
+{
+    switch (cpuMode) {
+        case 0:
+            return evalCode();
+        case 1:
+            return evalSuperscalar(pipelinesCount);
+        default:
+            break;
+    }
+}
 
+void setCpuMode(int mode)
+{
+    cpuMode = mode;
+}
+
+void setPipelines(int count)
+{
+    pipelinesCount = count;
+}
+
+void setTactDelay(int t_ms){
+    tactDelay = t_ms;
+}
+
+int getTactCount()
+{
+    return tactCounter;
+}

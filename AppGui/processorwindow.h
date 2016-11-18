@@ -45,6 +45,12 @@ private slots:
 
     void refreshState();
 
+    void on_modeComboBox_activated(int index);
+
+    void on_pipelinesCountSpinBox_valueChanged(int arg1);
+
+    void on_delaySpinBox_valueChanged(int arg1);
+
 private:
     Ui::ProcessorWindow *ui;
 

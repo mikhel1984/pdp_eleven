@@ -7,10 +7,11 @@ extern "C"
 
 void ProcessorThread::process()
 {
-    evalCode();
+    eval();
 }
 
 void ProcessorThread::stop()
 {
 }
+
 

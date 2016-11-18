@@ -12,10 +12,11 @@
 // clear and initialize data
 extern void prepareProcessor();
 
+extern int eval();
 // evaluate programm (1 pipeline)
 extern int evalCode();
 // evaluate one group of instructions (from fetch to write)
-extern int evalOneCycle(int *tact);
+extern int evalOneCycle();
 // return register state
 extern uint16_t *getRegister(uint8_t ind);
 // return flags
@@ -39,6 +40,19 @@ extern void newProgramm(uint16_t start);
 
 // last instruction after decoding
 char* getLastInstruction();
+
+// set cpu mode (classic or superscalar)
+extern void setCpuMode(int mode);
+
+// set number of pipelines (for superscalar mode)
+extern void setPipelines(int count);
+
+// set one tact delay, in ms. To simulate/animate processor work.
+extern void setTactDelay(int t_ms);
+
+// return elapsed tacts
+
+extern int getTactCount(void);
 
 int testProcessor2();
 

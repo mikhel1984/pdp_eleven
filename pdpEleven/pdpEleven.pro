@@ -21,7 +21,8 @@ SOURCES += \
     asmCommandHandler.c \
     utils.c \
     opcodes.c \
-    system.c
+    system.c \
+    parserUtils.c
 
 HEADERS += \
     font.h \
@@ -38,4 +39,5 @@ HEADERS += \
     opcodes.h \
     asmCommandHandler.h \
     logo.h \
-    system.h
+    system.h \
+    parserUtils.h

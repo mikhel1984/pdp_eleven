@@ -27,7 +27,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="mainTab">
        <attribute name="title">
@@ -298,6 +298,24 @@
                </item>
               </layout>
              </item>
+             <item>
+              <layout class="QGridLayout" name="gridLayout_6">
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_11">
+                 <property name="text">
+                  <string>Tacts count:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLabel" name="tactCountLabel">
+                 <property name="text">
+                  <string>0</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
             </layout>
            </widget>
           </item>
@@ -544,7 +562,7 @@ msgb: .string &quot;Different string that should get overwritten&quot;
          <rect>
           <x>140</x>
           <y>60</y>
-          <width>48</width>
+          <width>91</width>
           <height>24</height>
          </rect>
         </property>
@@ -573,7 +591,7 @@ msgb: .string &quot;Different string that should get overwritten&quot;
          <rect>
           <x>140</x>
           <y>90</y>
-          <width>48</width>
+          <width>91</width>
           <height>24</height>
          </rect>
         </property>
@@ -581,7 +599,7 @@ msgb: .string &quot;Different string that should get overwritten&quot;
          <number>0</number>
         </property>
         <property name="maximum">
-         <number>100</number>
+         <number>100000</number>
         </property>
         <property name="value">
          <number>0</number>
@@ -599,32 +617,6 @@ msgb: .string &quot;Different string that should get overwritten&quot;
         <property name="text">
          <string>Delay, microsec</string>
         </property>
-       </widget>
-       <widget class="QWidget" name="">
-        <property name="geometry">
-         <rect>
-          <x>40</x>
-          <y>150</y>
-          <width>171</width>
-          <height>18</height>
-         </rect>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_6">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>Tacts count:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="tactCountLabel">
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
        </widget>
       </widget>
      </widget>

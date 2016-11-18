@@ -4,6 +4,14 @@
 #include "utils.h"
 #include "asmCommandHandler.h"
 
+BOOL isEmpty(const char* str)
+{
+    if(str == NULL)
+        return TRUE;
+
+    return (strlen(str) == 0) ? TRUE : FALSE;
+}
+
 BOOL isComment(const char* str)
 {
     return str[0] == ';' ? TRUE : FALSE;

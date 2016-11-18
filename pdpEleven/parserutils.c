@@ -1,6 +1,25 @@
 
 #include "parserUtils.h"
 
+const char* prepareString(dict_t macros, const char* str, uint32_t address)
+{
+    if(isEmpty(str))
+        return str;
+
+    return pushIfMacro(macros, str, address);
+}
+
+const char* pushIfMacro(dict_t macros, const char* str, uint16_t address)
+{
+    const char *pos = strchr(str, ':');
+    if(!pos || (strStartWith(str, "done:") == TRUE))
+        return str;
+
+    pushMacroToDictionary(macros, str, address);
+    str = strTrim(str);
+
+    return pos + 1;
+}
 
 int parseCommand(const char* str, CmdStructPtr cmd)
 {
@@ -9,13 +28,6 @@ int parseCommand(const char* str, CmdStructPtr cmd)
     char cmdName[32] = "";
     char param1[32]  = "";
     char param2[32]  = "";
-
-    const char *pos = strchr(str, ':');
-    if(pos && (strStartWith(str, "done:") == FALSE))
-    {
-        pushMacroToDictionary(macros, str, cmd->address);
-        str = pos + 1;
-    }
 
     str = strTrim(str);
 

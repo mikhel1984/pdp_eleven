@@ -7,7 +7,7 @@ videoram=100000
 .origin 1000
 start: 
   mov #kdraw,@#kbdaddr ; write our handle to IVT
-  jmp application
+  jmp l2
 ;
 ; handle keyboard interrupt
 kdraw:
@@ -35,8 +35,8 @@ kdraw:
    mov (sp)+, r3 ; pop from stack
    rti
 ;
-application:
-   l2: nop
-      br l2
+
+l2: nop
+   br l2
 ;
 .end start

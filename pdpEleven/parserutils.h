@@ -5,6 +5,8 @@
 #include "dictionary.h"
 #include "asmConstant.h"
 
+const char* prepareString(dict_t macros, const char* str, uint32_t address);
+const char* pushIfMacro(dict_t macros, const char* str, uint16_t address);
 int parseCommand(const char* str, CmdStructPtr cmd);
 void pushExprToDict(const char* str);
 char* dumpMacroName(const char* srcStr);

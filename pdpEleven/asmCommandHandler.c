@@ -23,8 +23,12 @@ void processCmdBeq(CmdStructPtr cmd);
 void processCmdBne(CmdStructPtr cmd);
 void processCmdInc(CmdStructPtr cmd);
 void processCmdDec(CmdStructPtr cmd);
-void processCmdHalt(CmdStructPtr);
-void processCmdRti(CmdStructPtr);
+void processCmdHalt(CmdStructPtr cmd);
+void processCmdRti(CmdStructPtr cmd);
+void processCmdJmp(CmdStructPtr cmd);
+void processCmdMul(CmdStructPtr cmd);
+void processCmdAdd(CmdStructPtr cmd);
+void processCmdNop(CmdStructPtr cmd);
 
 const FuncConvertCmd funcConvertCmd[CMD_TOTAL] = {
     &processCmdMov,
@@ -36,7 +40,11 @@ const FuncConvertCmd funcConvertCmd[CMD_TOTAL] = {
     &processCmdInc,
     &processCmdDec,
     &processCmdHalt,
-    &processCmdRti
+    &processCmdRti,
+    &processCmdJmp,
+    &processCmdMul,
+    &processCmdAdd,
+    &processCmdNop
 };
 
 
@@ -63,6 +71,10 @@ const char* getCommandName(int type)
         case CMD_DEC : return "dec";
         case CMD_HALT: return "halt";
         case CMD_RTI : return "rti";
+        case CMD_JMP : return "jmp";
+        case CMD_MUL : return "mul";
+        case CMD_ADD : return "add";
+        case CMD_NOP : return "nop";
         default:       return "";
     }
 }
@@ -90,6 +102,10 @@ int convertCmdType(const char* str)
     else if(strCompare(str, "done:")) return CMD_HALT;
     else if(strCompare(str, "beq")  ) return CMD_BEQ;
     else if(strCompare(str, "rti")  ) return CMD_RTI;
+    else if(strCompare(str, "jmp")  ) return CMD_JMP;
+    else if(strCompare(str, "mul")  ) return CMD_MUL;
+    else if(strCompare(str, "add")  ) return CMD_ADD;
+    else if(strCompare(str, "nop")  ) return CMD_NOP;
     else                              return CMD_UNKNOWN;
 }
 
@@ -223,6 +239,38 @@ void processCmdRti(CmdStructPtr cmd)
 {
     arrayPush(cmd->address);
     arrayPush(opcodes[OP_RTI].base);
+
+    cmd->address += 2;
+}
+
+void processCmdJmp(CmdStructPtr cmd)
+{
+    arrayPush(cmd->address);
+    arrayPush(opcodes[OP_JMP].base);
+
+    cmd->address += 2;
+}
+
+void processCmdMul(CmdStructPtr cmd)
+{
+    arrayPush(cmd->address);
+    arrayPush(opcodes[OP_MUL].base);
+
+    cmd->address += 2;
+}
+
+void processCmdAdd(CmdStructPtr cmd)
+{
+    arrayPush(cmd->address);
+    arrayPush(opcodes[OP_ADD].base);
+
+    cmd->address += 2;
+}
+
+void processCmdNop(CmdStructPtr cmd)
+{
+    arrayPush(cmd->address);
+    arrayPush(0x00);
 
     cmd->address += 2;
 }

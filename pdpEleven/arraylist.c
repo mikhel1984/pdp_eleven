@@ -26,7 +26,8 @@ uint16_t arraySize(void)
 
 uint16_t arrayCurrIndex()
 {
-    return arrayCurrSize - 1;
+    return (arrayCurrSize != 0) ?
+                arrayCurrSize - 1 : 0;
 }
 
 void arraySetValue(uint16_t index, uint16_t value)

@@ -11,7 +11,7 @@ const char** getTestProgram3();
 
 int main()
 {
-    const char** buf = getTestProgram3();
+    const char** buf = getTestProgram1();
     assembly(buf, 41);
 
     return 0;

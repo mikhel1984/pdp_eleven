@@ -125,33 +125,20 @@ BOOL isSynaxKey(const char* name)
 void processCmdMov(CmdStructPtr cmd)
 {
     uint32_t optcode = opcodes[OP_MOV].base;
-    uint32_t addr2   = getRegAddr(cmd->param2);
-    uint32_t val = BUILD_DO(optcode, 2, 0x7, 0, addr2);
-    uint32_t valMacro = 0;
-    arrayPush(cmd->address);
-
-    arrayPush(val);
-
-    cmd->address += 2;
+    uint32_t word1   = 0x00;
+    uint32_t word2   = 0x00;
 
     arrayPush(cmd->address);
-
-
-    if(isMacro(cmd->param1))
-    {
-        valMacro = dictFind(macros, cmd->param1+1, -1);
-        if(valMacro == -1)
-        {
-            arrayPush(0x00);
-            dictAdd(macros, cmd->param1+1, arrayCurrIndex());
-        }
-        else
-        {
-            arrayPush(valMacro);
-        }
-    }
-
     cmd->address += 2;
+
+    word2   = parseAttributeInCommand(cmd->param2);
+    arrayPush(BUILD_DO(optcode, 2, 0x7, 0, word2));
+
+    arrayPush(cmd->address);
+    cmd->address += 2;
+
+    word1 = parseAttributeInCommand(cmd->param1);
+    arrayPush(word1);
 }
 
 void processCmdBeq(CmdStructPtr cmd)

@@ -1,6 +1,29 @@
 
 #include "parserUtils.h"
 
+uint16_t parseAttributeInCommand(const char* param)
+{
+    int valMacro = -1;
+
+    if(isMacro(param))
+    {
+        valMacro = dictFind(macros, param+1, -1);
+        if(valMacro == -1)
+        {
+            dictAdd(macros, param+1, arrayCurrIndex()+1);
+            return 0x00;
+        }
+        else
+        {
+            return valMacro;
+        }
+    }
+    else if(isRegister(param))
+    {
+        return getRegAddr(param);
+    }
+}
+
 const char* prepareString(dict_t macros, const char* str, uint32_t address)
 {
     if(isEmpty(str))

@@ -12,7 +12,6 @@ CONFIG += staticlib
 QMAKE_CFLAGS += -std=c99
 
 SOURCES += \
-    pdpeleven.c \
     memory.c \
     asm.c \
     processor.c \
@@ -24,7 +23,7 @@ SOURCES += \
     opcodes.c \
     system.c
 
-HEADERS += pdpeleven.h \
+HEADERS += \
     font.h \
     memory.h \
     asm.h \

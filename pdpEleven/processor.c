@@ -19,6 +19,7 @@
 #define SET_IF(F, COND) if(COND) SET_(F); else CLEAR_(F);
 
 #define PIPE_NUMBER_MAX 8
+#define INTERRUPT_KEYBOARD 060
 
 // Bits
 
@@ -38,6 +39,9 @@
 
 typedef struct _Instruction Instruction;
 typedef int (*Eval)(Instruction*);
+
+void interruptStart(uint16_t ind);
+int interruptFlag = 0;
 
 // Vector of processor operations
 Eval functionList[OP_COUNT] = {NULL};
@@ -145,6 +149,7 @@ uint16_t sum16(uint16_t v1, uint16_t v2) {
 
 uint16_t registers[REG_NUMBER];
 uint16_t storeRegisters[REG_NUMBER];
+
 
 uint8_t *memory_ = (uint8_t *) programm_;
 uint8_t flags;
@@ -575,7 +580,14 @@ int jmp(Instruction *inst) {
 }
 
 int nop(Instruction *inst) {
-    return 1;
+    return inst != NULL;
+}
+
+int rti(Instruction *inst) {
+    *getRegister(PC_REG) = storeRegisters[PC_REG];
+    *getRegister(SP_REG) = storeRegisters[SP_REG];
+    flags = storeFlags;
+    return inst != NULL;
 }
 
 // if function is not implemented
@@ -599,6 +611,7 @@ void initializeFunctions() {
     functionList[OP_BR] = br8;
     functionList[OP_JMP] = jmp;
     functionList[OP_NOP] = nop;
+    functionList[OP_RTI] = rti;
     int i = 0;
     for(i = 0; i < OP_COUNT; ++i) {
         if(!functionList[i]) functionList[i] = gag;
@@ -617,6 +630,10 @@ int decode(Instruction *res) {
     res->index = (OPCODELIST) ind;
 
     if(res->index == OP_HALT) {
+        res->delay = PIPE_HALT;
+    }
+    else if(res->index == OP_RTI) {
+        res->index = OP_HALT;
         res->delay = PIPE_HALT;
     }
     else if(isJump(res)) {
@@ -766,6 +783,8 @@ int evalOneTact(int pipeNum) {
     return evaluated;
 }
 
+
+
 void resetPipes(void) {
     for(int p = 0; p < PIPE_NUMBER_MAX; ++p) {
         pipes[p]=initInstruction();
@@ -802,16 +821,33 @@ int evalCode() {
     prepareProcessor();
 
     while(1) {
-        increment = evalOneCycle(&tact);
+        if(interruptFlag) {
+            interruptStart(INTERRUPT_KEYBOARD);
+        }
+        else {
+            increment = evalOneCycle(&tact);
 
-        if(increment == -1) break; // get HALT instruction
+            if(increment == -1) break; // get HALT instruction
 
-        if(increment)              // brake and jump return 0
-            incrementPC();
+            if(increment)              // brake and jump return 0
+                incrementPC();
+        }
+
     }
 
     return tact;
 }
+
+void interruptEval() {
+    int increment = 1, tact = 0;
+    while(1) {
+        increment = evalOneCycle(&tact);
+        if(increment == -1) break;
+        if(increment) incrementPC();
+    }
+}
+
+
 
 int evalSuperscalar(int pipeNum) {
     if(pipeNum < 1 || pipeNum > PIPE_NUMBER_MAX) return 0;
@@ -875,5 +911,23 @@ int testProcessor2() {
     return tact;
 }
 
+void interruptStart(uint16_t ind) {
+    saveState();
 
+    uint16_t interrupHandlerAddress = *((uint16_t*)getMemory(ind));
+
+    newProgramm(interrupHandlerAddress);
+
+    interruptEval();
+
+    restoreState();
+
+    interruptFlag = 0;
+}
+
+void interrupt(uint16_t scancode) {
+    interruptFlag = 1;
+
+    *getMemory(INTERRUPT_KEYBOARD) = scancode;
+}
 

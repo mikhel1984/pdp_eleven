@@ -435,7 +435,7 @@ void delay(int tacts) {
     clock_t t0 = clock();
 
     long i = 1;
-    int delay = tacts * tactDelay * CLOCKS_PER_SEC / 1000;
+    int delay = tacts * tactDelay * CLOCKS_PER_SEC / 1000000;
 
     while(clock() < t0 + delay) {
         i += 1;
@@ -864,8 +864,8 @@ void setPipelines(int count)
     pipelinesCount = count;
 }
 
-void setTactDelay(int t_ms){
-    tactDelay = t_ms;
+void setTactDelay(int t){
+    tactDelay = t;
 }
 
 int getTactCount()

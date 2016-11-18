@@ -27,7 +27,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="mainTab">
        <attribute name="title">
@@ -456,17 +456,59 @@ msgb: .string &quot;Different string that should get overwritten&quot;
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QPushButton" name="refreshMemoryButton">
-          <property name="maximumSize">
-           <size>
-            <width>120</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Refresh</string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QPushButton" name="refreshMemoryButton">
+            <property name="minimumSize">
+             <size>
+              <width>120</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>120</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Refresh</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="clearMemoryButton">
+            <property name="minimumSize">
+             <size>
+              <width>120</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>120</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Clear</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -541,45 +583,48 @@ msgb: .string &quot;Different string that should get overwritten&quot;
         <property name="maximum">
          <number>100</number>
         </property>
+        <property name="value">
+         <number>0</number>
+        </property>
        </widget>
        <widget class="QLabel" name="label_10">
         <property name="geometry">
          <rect>
           <x>30</x>
           <y>90</y>
-          <width>71</width>
+          <width>101</width>
           <height>21</height>
          </rect>
         </property>
         <property name="text">
-         <string>Delay, ms</string>
+         <string>Delay, microsec</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_11">
+       <widget class="QWidget" name="">
         <property name="geometry">
          <rect>
-          <x>30</x>
-          <y>130</y>
-          <width>101</width>
-          <height>16</height>
+          <x>40</x>
+          <y>150</y>
+          <width>171</width>
+          <height>18</height>
          </rect>
         </property>
-        <property name="text">
-         <string>Tacts count:</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="tactCountLabel">
-        <property name="geometry">
-         <rect>
-          <x>140</x>
-          <y>130</y>
-          <width>59</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>0</string>
-        </property>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>Tacts count:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="tactCountLabel">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </widget>
      </widget>

@@ -51,6 +51,8 @@ private slots:
 
     void on_delaySpinBox_valueChanged(int arg1);
 
+    void on_clearMemoryButton_clicked();
+
 private:
     Ui::ProcessorWindow *ui;
 
@@ -62,6 +64,7 @@ private:
     ProcessorThread* pthr;
     QTimer* timer;
     void setFlags();
+    void refreshMemory();
 };
 
 #endif // PROCESSORWINDOW_H

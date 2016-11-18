@@ -47,8 +47,8 @@ extern void setCpuMode(int mode);
 // set number of pipelines (for superscalar mode)
 extern void setPipelines(int count);
 
-// set one tact delay, in ms. To simulate/animate processor work.
-extern void setTactDelay(int t_ms);
+// set one tact delay, in microsec. To simulate/animate processor work.
+extern void setTactDelay(int t);
 
 // return elapsed tacts
 

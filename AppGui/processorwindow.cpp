@@ -309,12 +309,17 @@ void ProcessorWindow::on_stepButton_clicked()
 }
 
 
-void ProcessorWindow::on_refreshMemoryButton_clicked()
+void ProcessorWindow::refreshMemory()
 {
     //TODO refresh using some hexedit funciton (without recreate bytearray)
     //TODO auto reload by timer
     QByteArray qByteArray = QByteArray::fromRawData(reinterpret_cast<const char*>(memoryGetPointer()), MEMORY_TOTAL_SIZE);
     qhe->setData(qByteArray);
+}
+
+void ProcessorWindow::on_refreshMemoryButton_clicked()
+{
+    refreshMemory();
 }
 
 void ProcessorWindow::setFlags(){
@@ -355,4 +360,14 @@ void ProcessorWindow::on_pipelinesCountSpinBox_valueChanged(int arg1)
 void ProcessorWindow::on_delaySpinBox_valueChanged(int arg1)
 {
     setTactDelay(arg1);
+}
+
+void ProcessorWindow::on_clearMemoryButton_clicked()
+{
+    memmoryDestroy();
+    memmoryInitialize();
+    refreshMemory();
+
+//    qhe->setCursorPosition(Q_INT64_C(0x4000));
+//    qhe->setAddressOffset(Q_INT64_C(0x4000));
 }

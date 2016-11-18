@@ -1,4 +1,4 @@
-#include "processorthread.h"
+#include "ProcessorThread.h"
 
 extern "C"
 {
@@ -7,7 +7,18 @@ extern "C"
 
 void ProcessorThread::process()
 {
+    prepareProcessor();
+
+    setProgrammStart(01000 + 012);
+    setProgrammStack(06543);
+
     evalCode();
+
+
+
+
+
+
 }
 
 void ProcessorThread::stop()

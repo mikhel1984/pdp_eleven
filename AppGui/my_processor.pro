@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     processorthread.cpp
 
 HEADERS  += processorwindow.h \
-    processorthread.h
+    processorthread.h \
+    ProcessorThread.h
 
 FORMS    += processorwindow.ui
 

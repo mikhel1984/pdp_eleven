@@ -6,7 +6,7 @@
 #include <QLineEdit>
 #include <QKeyEvent>
 #include <QTimer>
-#include "processorthread.h"
+#include "ProcessorThread.h"
 
 class QGraphicsScene;
 class QImage;

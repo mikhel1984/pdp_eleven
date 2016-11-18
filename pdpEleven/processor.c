@@ -8,7 +8,7 @@
 
 #include "test_program.h"
 
-//#define WRITELOG
+#define WRITELOG
 
 // Flags
 
@@ -684,6 +684,7 @@ int evalOneCycle(int *tact) {
             registers[5], registers[6], registers[7]);
     writelog(LOGFILE, logging);
 #endif
+
     instruction.execute = 0;
     (*tact) ++;
     fetchMem(&instruction);
@@ -692,13 +693,16 @@ int evalOneCycle(int *tact) {
 
     instruction.execute = 0;
     decode(&instruction);
-    if(instruction.index == OP_HALT) return -1;
+
+
 
     //printf("%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
 
 #ifdef WRITELOG
     writelog(LOGFILE, lastInstruction);
 #endif
+
+    if(instruction.index == OP_HALT) return -1;
 
     (*tact)++;
     instruction.execute = 0;
@@ -818,7 +822,7 @@ void restoreState(void) {
 int evalCode() {
     int tact = 0, increment = 1;
 
-    prepareProcessor();
+    //prepareProcessor();
 
     while(1) {
         if(interruptFlag) {

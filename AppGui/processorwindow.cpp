@@ -23,8 +23,10 @@ extern "C"
     #include "system.h"
     #include "asm.h"
     #include "arraylist.h"
-    #include "processorthread.h"
+    #include "ProcessorThread.h"
     #include "memory.h"
+    #include "font.h"
+
 }
 
 int intBase = 10;
@@ -247,18 +249,70 @@ uint16_t sample_programm[] = {
 0000000
 };
 
+uint16_t programm_2 [] = {
+012737,
+001012,
+000060,
+000167,
+001072,
+
+010046,
+010146,
+010246,
+010346,
+
+013700,
+0177562,
+012701,
+0100000,
+012702,
+000010,
+
+070027,
+000010,
+066700,
+0175732,
+
+0112011,
+062701,
+000040,
+005302,
+001373,
+
+012600,
+012601,
+012602,
+012603,
+000002,
+
+000240,
+000776
+};
+
+void loadTestProgramm(void) {
+    uint16_t start = 01000;
+    unsigned int i;
+    uint16_t *mem = (uint16_t*) getMemory(start);
+    for(i = 0; i < sizeof(programm_2)/sizeof(programm_2[0]); ++i) {
+        mem[i] = programm_2[i];
+    }
+
+    *getMemory(0177562) = 'A';
+}
+
 void ProcessorWindow::on_loadButton_clicked()
 {
     systemInitialize();
 //    arrayClear();
-
-//    //temporary, while assembler works wrong
-//    for (int i = 0; i < sizeof(sample_programm)/sizeof(sample_programm[0]); ++i) {
-//        arrayPush(0);
-//        arrayPush(sample_programm[i]);
-////        arraySetValue(i,sample_programm[i]);
-//    }
-
+/*
+    //temporary, while assembler works wrong
+    for (int i = 0; i < sizeof(sample_programm)/sizeof(sample_programm[0]); ++i) {
+        arrayPush(0);
+        arrayPush(sample_programm[i]);
+//        arraySetValue(i,sample_programm[i]);
+    }
+*/
+    /*
     setProgrammStart(arrayGetValue(0));
     for (int i = 0; i < arraySize(); i+=2){
         uint16_t *procMemory = (uint16_t*) getMemory(i);
@@ -266,6 +320,10 @@ void ProcessorWindow::on_loadButton_clicked()
         //TODO remake, init memory
         *procMemory = machineWord;
     }
+    */
+    loadTestProgramm();
+
+
 }
 
 void ProcessorWindow::on_intBaseComboBox_activated(const QString &arg1)

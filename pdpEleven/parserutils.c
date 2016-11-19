@@ -1,5 +1,10 @@
 
 #include "parserUtils.h"
+#include "memory.h"
+#include "asmUtils.h"
+#include "arraylist.h"
+#include "utils.h"
+#include "asmCommandHandler.h"
 
 uint16_t parseAttributeInCommand(const char* param)
 {

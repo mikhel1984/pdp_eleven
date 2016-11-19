@@ -6,6 +6,7 @@
 #include "asmConstant.h"
 #include "asmCommandHandler.h"
 #include "asmUtils.h"
+#include "parserUtils.h"
 
 #include "dictionary.h"
 

@@ -22,7 +22,7 @@ kdraw:
    mov #lettersize, r2
 ;
    mul #10, r0
-   add fonts, r0
+   add #fonts, r0
 ;
    l1: movb (r0)+, (r1)
       add #40, r1

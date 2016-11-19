@@ -3,10 +3,12 @@ kbdb=177562
 fonts=177000
 lettersize=10
 videoram=100000
+strsizeaddr=5000
 ;
 .origin 1000
 start: 
   mov #kdraw,@#kbdaddr ; write our handle to IVT
+  mov #videoram, @#strsizeaddr
   jmp #application
 ;
 ; handle keyboard interrupt
@@ -17,8 +19,8 @@ kdraw:
    mov r2,-(sp)
    mov r3,-(sp)
 ;
-   movb @#kbdb, r0
-   mov #videoram, r1
+   mov @#kbdb, r0
+   mov @#strsizeaddr, r1
    mov #lettersize, r2
 ;
    mul #10, r0
@@ -28,6 +30,8 @@ kdraw:
       add #40, r1
       dec r2
       bne l1
+;
+   inc @#strsizeaddr
 ;
    mov (sp)+, r0
    mov (sp)+, r1

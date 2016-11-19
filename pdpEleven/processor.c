@@ -9,7 +9,7 @@
 
 #include "test_program.h"
 
-#define WRITELOG
+//#define WRITELOG
 
 // Flags
 
@@ -944,9 +944,9 @@ void interruptStart(uint16_t ind) {
 }
 
 void interrupt(uint16_t scancode) {
-    writelog(LOGFILE, "Interrupt");
+    //writelog(LOGFILE, "Interrupt");
     *getMemory(FONTS_SCAN) = scancode;
-    *getMemory(INTERRUPT_KEYBOARD) = 01012;
+    //*getMemory(INTERRUPT_KEYBOARD) = 01012;
 
     interruptFlag = 1;
 }

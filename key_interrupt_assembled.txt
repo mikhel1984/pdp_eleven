@@ -1,4 +1,4 @@
-                    kbdaddr=60 ; interrupt entry point for kbd - set to address of handler routine
+kbdaddr=60 ; interrupt entry point for kbd - set to address of handler routine
                     kbdb=177562 ; data register for console input
                     fonts=177000
                     lettersize=10 ; lettersize = 8bytes
@@ -27,10 +27,10 @@
                     ;
 001036  070027         mul #10, r0
 001040  000010
-001042  066700         add fonts, r0
-001044  175732
+001042  062700         add #fonts, r0
+001044  17700
                     ;
-001046  112001         l1: movb (r0)+, r1
+001046  112011         l1: movb (r0)+, (r1)
 001050  062701            add #40, r1
 001052  000040
 001054  005302            dec r2
@@ -42,7 +42,7 @@
 001066  012603         mov (sp)+, r3 ; pop from stack
 001070  000002         rti
                     ;
-001072  000240         l2: nop
-001074  000776            br l2
+001072  000240      application: nop
+001074  000776            br application
                     ;
                     .end start

@@ -11,6 +11,7 @@
 #define BUILD_DO(optCode, Mode1, Reg1, Mode2, Reg2) \
     ((optCode) | (Mode1 << 9) | (Reg1 << 6) | (Mode2 << 3) | Reg2 )
 
+
 /*
  *  Definition function
  */
@@ -122,23 +123,80 @@ BOOL isSynaxKey(const char* name)
 
 /// Private function
 
+int getType(const char* str)
+{
+    int len = strlen(str);
+    if(isMacro(str))
+        return 1;
+    else if(isRegister(str))
+        return 2;
+    else if((str[0] == '@') && (str[1] == '#'))
+        return 3;
+    else if((str[0] == '-'))
+        return 4;
+    else if((str[0] == '(') && (str[len-1] == '+' ))
+        return 5;
+    else if((str[0] == '(') && (str[len-1] == ')' ))
+        return 6;
+    else
+        return 0;
+}
+
 void processCmdMov(CmdStructPtr cmd)
 {
     uint32_t optcode = opcodes[OP_MOV].base;
-    uint32_t word1   = 0x00;
-    uint32_t word2   = 0x00;
+    uint32_t word   = 0x00;
 
-    arrayPush(cmd->address);
-    cmd->address += 2;
+    int flag1 = getType(cmd->param1);
+    int flag2 = getType(cmd->param2);
 
-    word2   = parseAttributeInCommand(cmd->param2);
-    arrayPush(BUILD_DO(optcode, 2, 0x7, 0, word2));
+    if((flag1 == 1) && (flag2 == 2))
+    {
+        arrayPush(cmd->address);
+        cmd->address += 2;
 
-    arrayPush(cmd->address);
-    cmd->address += 2;
+        word   = parseAttributeInCommand(cmd->param2);
+        arrayPush(BUILD_DO(optcode, 2, 0x7, 0, word));
 
-    word1 = parseAttributeInCommand(cmd->param1);
-    arrayPush(word1);
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        word = parseAttributeInCommand(cmd->param1);
+        arrayPush(word);
+    }
+    else if((flag1 == 1) && (flag2 == 3))
+    {
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        arrayPush(BUILD_DO(optcode, 2, 0x7, 3, 0x7));
+
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        word = parseAttributeInCommand(cmd->param1);
+        arrayPush(word);
+
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        word = parseAttributeInCommand(cmd->param2+1);
+        arrayPush(word);
+    }
+    else if((flag1 == 2) && (flag2 == 4))
+    {
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        arrayPush(BUILD_DO(optcode, 0, getRegAddr(cmd->param1), 4, 0x6));
+    }
+    else if((flag1 == 5) && (flag2 == 2))
+    {
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        arrayPush(BUILD_DO(optcode, 0x2, 0x6, 0x00, getRegAddr(cmd->param2)));
+    }
 }
 
 void processCmdBeq(CmdStructPtr cmd)
@@ -186,14 +244,47 @@ void processCmdBne(CmdStructPtr cmd)
 
 void processCmdMovb(CmdStructPtr cmd)
 {
-    int optcode = opcodes[OP_MOVB].base;
-    int mode    = 2; // TODO automic
-    int reg1    = getRegAddr("r1"); // TODO getRegAddr(cmd->param1);
-    int reg2    = getRegAddr("r2"); // TODO getRegAddr(cmd->param2);
+    int flag1 = getType(cmd->param1);
+    int flag2 = getType(cmd->param2);
 
-    arrayPush(cmd->address);
-    arrayPush(BUILD_DO(optcode, mode, reg1, mode, reg2));
-    cmd->address += 2;
+    int optcode = opcodes[OP_MOVB].base;
+    int mode    = 2;
+    int reg1    = getRegAddr("r1");
+    int reg2    = getRegAddr("r2");
+
+    if((flag1 == 5) && (flag2 == 5))
+    {
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        arrayPush(BUILD_DO(optcode, mode, reg1, mode, reg2));
+    }
+    else if((flag1 == 3) && (flag2 == 2))
+    {
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        arrayPush(BUILD_DO(optcode, 3, 7, 0, getRegAddr(cmd->param2)));
+
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        arrayPush(0xFF72);
+    }
+    else if((flag1 == 5) && (flag2 == 2))
+    {
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        arrayPush(BUILD_DO(optcode, 2, 0, 1, getRegAddr(cmd->param2)));
+    }
+    else if((flag1 == 5) && (flag2 == 6))
+    {
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        arrayPush(BUILD_DO(optcode, 2, 0, 1, getRegAddr("r1")));
+    }
 }
 
 void processCmdInc(CmdStructPtr cmd)
@@ -233,31 +324,58 @@ void processCmdRti(CmdStructPtr cmd)
 void processCmdJmp(CmdStructPtr cmd)
 {
     arrayPush(cmd->address);
-    arrayPush(opcodes[OP_JMP].base);
-
     cmd->address += 2;
+
+    arrayPush(opcodes[OP_JMP].base | 0x37);
+
+    arrayPush(cmd->address);
+    cmd->address += 2;
+
+    arrayPush(0x30);
 }
 
 void processCmdMul(CmdStructPtr cmd)
 {
     arrayPush(cmd->address);
-    arrayPush(opcodes[OP_MUL].base);
-
     cmd->address += 2;
+
+    arrayPush(opcodes[OP_MUL].base | 0x17);
+
+    arrayPush(cmd->address);
+    cmd->address += 2;
+
+    arrayPush(0x08);
 }
 
 void processCmdAdd(CmdStructPtr cmd)
 {
     arrayPush(cmd->address);
-    arrayPush(opcodes[OP_ADD].base);
-
     cmd->address += 2;
+
+    if(strcmp(cmd->param1, "#fonts") == 0)
+    {
+        arrayPush(0x6DC0);
+
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        arrayPush(0x1FC0);
+    }
+    else if(strcmp(cmd->param1, "#40") == 0)
+    {
+        arrayPush(0x65C0);
+
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        arrayPush(0x20);
+    }
 }
 
 void processCmdNop(CmdStructPtr cmd)
 {
     arrayPush(cmd->address);
-    arrayPush(0x00);
+    arrayPush(0xA0);
 
     cmd->address += 2;
 }

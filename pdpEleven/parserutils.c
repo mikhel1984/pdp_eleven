@@ -34,12 +34,20 @@ const char* prepareString(dict_t macros, const char* str, uint32_t address)
 
 const char* pushIfMacro(dict_t macros, const char* str, uint16_t address)
 {
+    int val = -1;
     const char *pos = strchr(str, ':');
     if(!pos || (strStartWith(str, "done:") == TRUE))
         return str;
-
-    pushMacroToDictionary(macros, str, address);
-    str = strTrim(str);
+    val = getValueFromDictionary(macros, str);
+    if(val != -1)
+    {
+        arraySetValue(val, arrayGetValue(arrayCurrIndex()-1)+2);
+    }
+    else
+    {
+        pushMacroToDictionary(macros, str, address);
+        str = strTrim(str);
+    }
 
     return pos + 1;
 }

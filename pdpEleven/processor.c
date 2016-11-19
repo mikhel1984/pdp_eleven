@@ -4,6 +4,7 @@
 #include "opcodes.h"
 #include "memory.h"
 #include <time.h>
+#include <stdlib.h>
 
 #include "test_program.h"
 
@@ -18,6 +19,7 @@
 #define SET_IF(F, COND) if(COND) SET_(F); else CLEAR_(F);
 
 #define PIPE_NUMBER_MAX 8
+#define INTERRUPT_KEYBOARD 060
 
 // Bits
 
@@ -32,6 +34,7 @@
 #define IS_BYTE(X)   (X >> SHIFT15)
 
 #define PC_REG   07
+#define SP_REG   06
 #define REG_NUMBER 8
 
 int cpuMode = 0;
@@ -42,6 +45,9 @@ int tactCounter = 0;
 
 typedef struct _Instruction Instruction;
 typedef int (*Eval)(Instruction*);
+
+void interruptStart(uint16_t ind);
+int interruptFlag = 0;
 
 // Vector of processor operations
 Eval functionList[OP_COUNT] = {NULL};
@@ -139,16 +145,17 @@ uint16_t convert16t(uint8_t val) {
     }
     return (uint16_t) val;
 }
-
+/*
 uint16_t sum16(uint16_t v1, uint16_t v2) {
     return v1 + v2;
-}
+}*/
 
 //                      MEMORY
 // pointers to memory
 
 uint16_t registers[REG_NUMBER];
 uint16_t storeRegisters[REG_NUMBER];
+
 
 uint8_t *memory_ = (uint8_t *) programm_;
 uint8_t flags;
@@ -163,6 +170,10 @@ uint8_t getFlags() { return flags; }
 
 void setProgrammStart(uint16_t ind) {
     *getRegister(PC_REG) = ind;
+}
+
+void setProgrammStack(uint16_t ind) {
+    *getRegister(SP_REG) = ind;
 }
 
 // Get data from memory
@@ -284,11 +295,11 @@ uint8_t *mode_5b(uint8_t ind) {
 uint16_t *mode_5(uint8_t ind) {
     return (uint16_t*) mode_5b(ind);
 }
-uint16_t *mode_5pc() {
-    *getRegister(PC_REG) += 2;
+uint16_t *mode_6pc() {
+    *getRegister(PC_REG) += 2;    
     uint16_t addr = *((uint16_t*) getMemory(*getRegister(PC_REG)));
     *getRegister(PC_REG) += 2;
-    addr += *getRegister(PC_REG);
+    addr += *getRegister(PC_REG);    
     return (uint16_t *) getMemory(addr);
 }
 
@@ -304,7 +315,7 @@ uint16_t *mode_7(uint8_t ind) {
     return (uint16_t*) mode_7b(ind);
 }
 uint16_t *mode_7pc() {
-    uint16_t addr = *mode_5pc();
+    uint16_t addr = *mode_6pc();
     return (uint16_t *) getMemory(addr);
 }
 
@@ -318,9 +329,9 @@ uint16_t* getWord(uint16_t op) {
     case 03:
         return (ODIGIT(op,0) == 07) ? mode_3pc() : mode_3(ODIGIT(op,0));
     case 04: return mode_4(ODIGIT(op,0));
-    case 05:
-        return (ODIGIT(op,0) == 07) ? mode_5pc() : mode_5(ODIGIT(op,0));
-    case 06: return mode_6(ODIGIT(op,0));
+    case 05: return mode_5(ODIGIT(op,0));
+    case 06:
+        return (ODIGIT(op,0) == 07) ? mode_6pc() : mode_6(ODIGIT(op,0));
     case 07:
         return (ODIGIT(op,0) == 07) ? mode_7pc() : mode_7(ODIGIT(op,0));
     default:
@@ -518,6 +529,33 @@ int mov16(Instruction *inst) {
     return 1;
 }
 
+int add16(Instruction *inst) {
+    int start_sign = -1, res_sign;
+    uint16_t *src = (uint16_t*) inst->src_val, *dst = (uint16_t*) inst->dst_val;
+    if(IS_BYTE(*src) == IS_BYTE(*dst)) {
+        start_sign = IS_BYTE(*src);
+    }
+    *dst += *src;
+    res_sign = IS_BYTE(*dst);
+    SET_IF(_N, res_sign);
+    SET_IF(_Z, *dst == 0);
+    SET_IF(_V, start_sign != -1 && res_sign != start_sign);
+    CLEAR_(_C); /* TODO: correct */
+    return 1;
+}
+
+int mul16(Instruction *inst) {
+    CLEAR_(_V);
+    int tmp;
+    uint16_t *src = (uint16_t*) inst->src_val, *dst = (uint16_t*) inst->dst_val;
+    tmp = (*src) * (*dst);    
+    *dst = (uint16_t) tmp;
+    SET_IF(_N, IS_BYTE(*dst));
+    SET_IF(_Z, (*dst) == 0);
+    SET_IF(_C, abs(tmp) > 0100000);
+    return 1;
+}
+
 int beq8(Instruction *inst) {
     if(GET_(_Z)) {        
         uint8_t val = (uint8_t) getOperand(inst->code, opcodes[inst->index].offset_mask);
@@ -547,6 +585,24 @@ int br8(Instruction *inst) {
     *pc += 02 + offset + offset;
     return 0;
 }
+
+int jmp(Instruction *inst) {    
+    uint16_t *val = (uint16_t*) inst->src_val;        
+    *getRegister(PC_REG) = *val;
+    return 0;
+}
+
+int nop(Instruction *inst) {
+    return inst != NULL;
+}
+
+int rti(Instruction *inst) {
+    *getRegister(PC_REG) = storeRegisters[PC_REG];
+    *getRegister(SP_REG) = storeRegisters[SP_REG];
+    flags = storeFlags;
+    return inst != NULL;
+}
+
 // if function is not implemented
 int gag(Instruction *inst) {
     return inst ? 1 : 0;
@@ -561,9 +617,14 @@ void initializeFunctions() {
     functionList[OP_DECB] = dec8;
     functionList[OP_MOV] = mov16;
     functionList[OP_MOVB] = mov8;
+    functionList[OP_ADD] = add16;
+    functionList[OP_MUL] = mul16;
     functionList[OP_BEQ] = beq8;
     functionList[OP_BNE] = bne8;
     functionList[OP_BR] = br8;
+    functionList[OP_JMP] = jmp;
+    functionList[OP_NOP] = nop;
+    functionList[OP_RTI] = rti;
     int i = 0;
     for(i = 0; i < OP_COUNT; ++i) {
         if(!functionList[i]) functionList[i] = gag;
@@ -584,6 +645,10 @@ int decode(Instruction *res) {
     if(res->index == OP_HALT) {
         res->delay = PIPE_HALT;
     }
+    else if(res->index == OP_RTI) {
+        res->index = OP_HALT;
+        res->delay = PIPE_HALT;
+    }
     else if(isJump(res)) {
         res->delay = PIPE_WRITE;
     }    
@@ -599,7 +664,7 @@ int decode(Instruction *res) {
     res->tacts = 1;
     res->execute = 0;
 
-    sprintf(lastInstruction, "%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[res->index].name);
+    sprintf(lastInstruction, "%o %o %s\n", *getRegister(PC_REG), opcode, opcodes[res->index].name);
 
 /*
 #ifdef WRITELOG
@@ -729,6 +794,8 @@ int evalOneTact(int pipeNum) {
     return evaluated;
 }
 
+
+
 void resetPipes(void) {
     for(int p = 0; p < PIPE_NUMBER_MAX; ++p) {
         pipes[p]=initInstruction();
@@ -785,16 +852,33 @@ int evalCode() {
     prepareProcessor();
 
     while(1) {
-        increment = evalOneCycle();
+        if(interruptFlag) {
+            interruptStart(INTERRUPT_KEYBOARD);
+        }
+        else {
+            increment = evalOneCycle();
 
-        if(increment == -1) break; // get HALT instruction
+            if(increment == -1) break; // get HALT instruction
 
-        if(increment)              // brake and jump return 0
-            incrementPC();
+            if(increment)              // brake and jump return 0
+                incrementPC();
+        }
+
     }
 
     return tactCounter;
 }
+
+void interruptEval() {
+    int increment = 1;
+    while(1) {
+        increment = evalOneCycle();
+        if(increment == -1) break;
+        if(increment) incrementPC();
+    }
+}
+
+
 
 int evalSuperscalar(int pipeNum) {
     if(pipeNum < 1 || pipeNum > PIPE_NUMBER_MAX) return 0;
@@ -822,11 +906,14 @@ void printRegisters() {
             registers[5], registers[6], registers[7]);
 }
 
+#define TEST_ARRAY programm2
+
 int testProcessor2() {
-    int tact = 0, i/*, increment = 1*/;
+    int i/*, increment = 1*/;
+    memmoryInitialize();
 
     prepareProcessor();
-
+/*
     // test string(s)
         uint8_t *mem = (uint8_t*) programm_;
         for(i = 20; i < 108; ++i) {
@@ -834,19 +921,36 @@ int testProcessor2() {
         }
         printf("\n");
 
+  */
+    // copy sample
+    int start = 01000;
+    uint16_t *mptr = (uint16_t*) getMemory(start);
+    for(i = 0; i < sizeof(TEST_ARRAY)/sizeof(uint16_t); i++) {
+        //printf("%d\n", i);
+        *mptr = TEST_ARRAY[i];
+        mptr++;
+    }
+    // initialize
+    setProgrammStart(start+012);
+    setProgrammStack(05670);
+
+    *getMemory(0177562) = 010;
 
     printRegisters();
-/*
-    int k;
+
+    int k, inc;
     for(k = 0; k < 100; ++k) {
-        evalOneTact();*/
-
-    while(evalOneTact(2)) {
+        inc = evalOneCycle();
+        puts(lastInstruction);
+        if(inc == -1) break;
+        if(inc) incrementPC();
+/*
+    while(evalOneTact(1)) {
         tact++;
-
+*/
         printRegisters();
     }
-
+/*
     printf("\nNumber of tacts: %d\n", tact);
         printf("\n");
         for(i = 20; i < 108; ++i) {
@@ -854,9 +958,25 @@ int testProcessor2() {
         }
         printf("\n");
 
-    return tact;
+*/
+    memmoryDestroy();
+
+    return tactCounter;
 }
 
+void interruptStart(uint16_t ind) {
+    saveState();
+
+    uint16_t interrupHandlerAddress = *((uint16_t*)getMemory(ind));
+
+    newProgramm(interrupHandlerAddress);
+
+    interruptEval();
+
+    restoreState();
+
+    interruptFlag = 0;
+}
 
 int eval()
 {
@@ -882,6 +1002,13 @@ void setPipelines(int count)
 
 void setTactDelay(int t){
     tactDelay = t;
+
+}
+
+void interrupt(uint16_t scancode) {
+    interruptFlag = 1;
+
+    *getMemory(INTERRUPT_KEYBOARD) = scancode;
 }
 
 int getTactCount()

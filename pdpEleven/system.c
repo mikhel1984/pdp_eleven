@@ -41,11 +41,24 @@ void loadLogo(void)
 void loadFonts(void)
 {
     unsigned int i, j;
+    uint8_t r, v;
+    int s;
     uint8_t *mem =  getMemory(FONTS_ADR);
+
 
     for(i = 0; i < TOTAL_SYMBOL; ++i) {
         for(j = 0; j < CH_HEIGHT; ++j) {
-            *mem = font[i][j];
+            // reverse bits
+            v = r = font[i][j];
+            s = sizeof(v)*8 - 1;
+            for(v >>= 1; v ; v >>= 1) {
+                r <<= 1;
+                r |= v & 1;
+                s --;
+            }
+            r <<= s;
+
+            *mem = r;
             mem++;
         }
     }

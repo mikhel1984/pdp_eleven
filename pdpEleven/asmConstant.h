@@ -25,6 +25,10 @@ enum CmdType
     CMD_DEC,
     CMD_HALT,
     CMD_RTI,
+    CMD_JMP,
+    CMD_MUL,
+    CMD_ADD,
+    CMD_NOP,
     CMD_TOTAL,
     CMD_UNKNOWN
 };

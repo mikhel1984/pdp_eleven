@@ -4,6 +4,14 @@
 #include "utils.h"
 #include "asmCommandHandler.h"
 
+BOOL isEmpty(const char* str)
+{
+    if(str == NULL)
+        return TRUE;
+
+    return (strlen(str) == 0) ? TRUE : FALSE;
+}
+
 BOOL isComment(const char* str)
 {
     return str[0] == ';' ? TRUE : FALSE;
@@ -55,4 +63,32 @@ uint8_t getRegAddr(const char* name)
     }
 
     return REG_UNKNOWN;
+}
+
+int getAddrMode(const char* str)
+{
+    int strLength = strlen(str);
+
+    if(isRegister(str))              return AM_REGISTER;
+    else if(str[strLength-1] == '+') return AM_AUTO_INCR;
+    else if(str[0] == '-')           return AM_AUTO_DECR;
+    else                             return AM_UNDEFINED;
+}
+
+int getDeferedAddrMode(const char* str)
+{
+    int strLength = strlen(str);
+
+    if((str[0] == '@') && isRegister(str+1))              return DAM_REGISTER;
+    else if((str[0] == '@') && (str[strLength-1] == '+')) return DAM_AUTO_INCR;
+    else if((str[0] == '@') && (str[1] == '-'))           return DAM_AUTO_DECR;
+    else                                                  return DAM_UNDEFINED;
+}
+
+int getPcAddrMode(const char* str)
+{
+    if(str[0] == '#')                           return PAM_IMMIDIATE;
+    else if((str[0] == '@') && (str[1] == '#')) return PAM_RELATIVE;
+    else if(str[0] == '@')                      return PAM_REL_DEF;
+    else                                        return PAM_UNDEFINED;
 }

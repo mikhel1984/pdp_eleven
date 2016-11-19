@@ -17,7 +17,6 @@ dict_t macros = NULL;
 
 void convertProgram(uint16_t address, const char* text[], int size);
 void convertMacro(uint16_t* address , const char* text[], int size);
-
 void convertAsci(uint16_t* addr     , const char* str);
 
 /*
@@ -36,8 +35,12 @@ int assembly(const char* text[], int size)
     {
         str = strTrim(text[index]);
 
+        if(isEmpty(str))
+            continue;
+
         if(isComment(str))
             continue;
+
         else if(isExpression(str))
         {
             pushExprToDict(str);
@@ -57,6 +60,8 @@ int assembly(const char* text[], int size)
 
     convertProgram(startCode, text + index, size-index);
 
+    arrayPrint();
+
     free(macros);
 
     return TRUE;
@@ -73,8 +78,15 @@ void convertProgram(uint16_t address, const char* text[], int size)
     {
         str = strTrim(text[i]);
 
+        str = prepareString(macros, str, cmd.address);
+        if(isEmpty(str))
+            continue;
+
         if(isComment(str))
             continue;
+
+        if(strStartWith(str, ".end") == TRUE)
+            return;
 
         parseCommand(str, &cmd);
 
@@ -85,7 +97,6 @@ void convertProgram(uint16_t address, const char* text[], int size)
     }
 
     convertMacro(&(cmd.address), text+i+1, size-i);
-    arrayPrint();
 }
 
 void convertMacro(uint16_t* address, const char* text[], int size)
@@ -97,6 +108,9 @@ void convertMacro(uint16_t* address, const char* text[], int size)
     for(i = 0; i < size; i++)
     {
         str = strTrim(text[i]);
+        if(isEmpty(str))
+            continue;
+
         if(strStartWith(str, synaxKey[SKEY_END]) == TRUE)
             break;
 

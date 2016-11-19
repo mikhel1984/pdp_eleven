@@ -1,6 +1,56 @@
 
 #include "parserUtils.h"
 
+uint16_t parseAttributeInCommand(const char* param)
+{
+    int valMacro = -1;
+
+    if(isMacro(param))
+    {
+        valMacro = dictFind(macros, param+1, -1);
+        if(valMacro == -1)
+        {
+            dictAdd(macros, param+1, arrayCurrIndex()+1);
+            return 0x00;
+        }
+        else
+        {
+            return valMacro;
+        }
+    }
+    else if(isRegister(param))
+    {
+        return getRegAddr(param);
+    }
+}
+
+const char* prepareString(dict_t macros, const char* str, uint32_t address)
+{
+    if(isEmpty(str))
+        return str;
+
+    return pushIfMacro(macros, str, address);
+}
+
+const char* pushIfMacro(dict_t macros, const char* str, uint16_t address)
+{
+    int val = -1;
+    const char *pos = strchr(str, ':');
+    if(!pos || (strStartWith(str, "done:") == TRUE))
+        return str;
+    val = getValueFromDictionary(macros, str);
+    if(val != -1)
+    {
+        arraySetValue(val, arrayGetValue(arrayCurrIndex()-1)+2);
+    }
+    else
+    {
+        pushMacroToDictionary(macros, str, address);
+        str = strTrim(str);
+    }
+
+    return pos + 1;
+}
 
 int parseCommand(const char* str, CmdStructPtr cmd)
 {
@@ -9,13 +59,6 @@ int parseCommand(const char* str, CmdStructPtr cmd)
     char cmdName[32] = "";
     char param1[32]  = "";
     char param2[32]  = "";
-
-    const char *pos = strchr(str, ':');
-    if(pos && (strStartWith(str, "done:") == FALSE))
-    {
-        pushMacroToDictionary(macros, str, cmd->address);
-        str = pos + 1;
-    }
 
     str = strTrim(str);
 

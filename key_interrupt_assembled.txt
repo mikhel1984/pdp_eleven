@@ -1,4 +1,4 @@
-                    kbdaddr=60 ; interrupt entry point for kbd - set to address of handler routine
+kbdaddr=60 ; interrupt entry point for kbd - set to address of handler routine
                     kbdb=177562 ; data register for console input
                     fonts=177000
                     lettersize=10 ; lettersize = 8bytes

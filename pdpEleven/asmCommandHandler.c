@@ -197,6 +197,19 @@ void processCmdMov(CmdStructPtr cmd)
 
         arrayPush(BUILD_DO(optcode, 0x2, 0x6, 0x00, getRegAddr(cmd->param2)));
     }
+    else if((flag1 == 3) || (flag2 == 2))
+    {
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        arrayPush(BUILD_DO(optcode, 3, 0x7, 0, getRegAddr(cmd->param2)));
+
+        arrayPush(cmd->address);
+        cmd->address += 2;
+
+        word = parseAttributeInCommand(cmd->param1+1);
+        arrayPush(word);
+    }
 }
 
 void processCmdBeq(CmdStructPtr cmd)
@@ -331,7 +344,7 @@ void processCmdJmp(CmdStructPtr cmd)
     arrayPush(cmd->address);
     cmd->address += 2;
 
-    arrayPush(0x23A);
+    arrayPush(0x244);
 }
 
 void processCmdMul(CmdStructPtr cmd)

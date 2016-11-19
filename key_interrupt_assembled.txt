@@ -1,22 +1,22 @@
-kbdaddr=60 ; interrupt entry point for kbd - set to address of handler routine
-                    kbdb=177562 ; data register for console input
+                    kbdaddr=60
+                    kbdb=177562
                     fonts=177000
-                    lettersize=10 ; lettersize = 8bytes
+                    lettersize=10
                     videoram=100000
                     ;
                     .origin 1000
 001000  012737        mov #kdraw,@#kbdaddr ; write our handle to IVT
 001002  001012
 001004  000060
-001006  000167        jmp application
-001010  000060
+001006  000127        jmp #application
+001010  001072
                     ;
                     ; handle keyboard interrupt
                     ;   
-001012  010046         mov r0,-(sp) ; push to stack
-001014  010146         mov r1,-(sp) ; push to stack
-001016  010246         mov r2,-(sp) ; push to stack
-001020  010346         mov r3,-(sp) ; push to stack
+001012  010046         mov r0,-(sp)
+001014  010146         mov r1,-(sp)
+001016  010246         mov r2,-(sp)
+001020  010346         mov r3,-(sp)
                     ;
 001022  113700         movb @#kbdb, r0
 001024  177562
@@ -36,10 +36,10 @@ kbdaddr=60 ; interrupt entry point for kbd - set to address of handler routine
 001054  005302            dec r2
 001056  001373            bne l1
                     ;
-001060  012600         mov (sp)+, r0 ; pop from stack
-001062  012601         mov (sp)+, r1 ; pop from stack
-001064  012602         mov (sp)+, r2 ; pop from stack
-001066  012603         mov (sp)+, r3 ; pop from stack
+001060  012600         mov (sp)+, r0
+001062  012601         mov (sp)+, r1
+001064  012602         mov (sp)+, r2
+001066  012603         mov (sp)+, r3
 001070  000002         rti
                     ;
 001072  000240      application: nop

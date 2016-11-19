@@ -326,12 +326,12 @@ void processCmdJmp(CmdStructPtr cmd)
     arrayPush(cmd->address);
     cmd->address += 2;
 
-    arrayPush(opcodes[OP_JMP].base | 0x37);
+    arrayPush(opcodes[OP_JMP].base | 0x57);
 
     arrayPush(cmd->address);
     cmd->address += 2;
 
-    arrayPush(0x30);
+    arrayPush(0x23A);
 }
 
 void processCmdMul(CmdStructPtr cmd)

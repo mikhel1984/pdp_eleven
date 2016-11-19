@@ -1,0 +1,65 @@
+                    kbdaddr=60
+                    kbdb=177562
+                    fonts=177000
+                    lettersize=10
+                    videoram=100000
+                    strsizeaddr=5000
+                    imagerom=140000
+                    videosize=20000
+                    ;
+                    .origin 1000
+001000  012737        mov #kdraw,@#kbdaddr ; write our handle to IVT
+001002  001020
+001004  000060
+001006  012737        mov #videoram, @#strsizeaddr
+001010  100000
+001012  005000
+001014  000127        jmp #application
+001016  001104
+                    ;
+                    ; handle keyboard interrupt
+                    ;   
+001020  010046         mov r0,-(sp)
+001022  010146         mov r1,-(sp)
+001024  010246         mov r2,-(sp)
+001026  010346         mov r3,-(sp)
+                    ;
+001030  013700         mov @#kbdb, r0
+001032  177562
+001034  013701         mov @#strsizeaddr, r1
+001036  005000
+001040  012702         mov #lettersize, r2
+001042  000010
+                    ;
+001044  070027         mul #10, r0
+001046  000010
+001050  062700         add #fonts, r0
+001052  177000
+                    ;
+001054  112011         l1: movb (r0)+, (r1)
+001056  062701            add #40, r1
+001060  000040
+001062  005302            dec r2
+001064  001373            bne l1
+                    ;
+001066  005237         inc @#strsizeaddr
+001070  005000
+                    ;
+001072  012600         mov (sp)+, r0
+001074  012601         mov (sp)+, r1
+001076  012602         mov (sp)+, r2
+001100  012603         mov (sp)+, r3
+001102  000002         rti
+                    ;
+001104  012701      application: mov #imagerom, r1
+001106  140000
+001110  012702         mov #videoram, r2
+001112  100000
+001114  012700         mov #videosize, r0
+001116  020000
+001120  112122      l2: movb (r1)+, (r2)+
+001122  005300         dec r0
+001124  001375         bne l2
+001126  000000      done: halt
+                    ;
+                    .end start

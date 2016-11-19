@@ -302,10 +302,27 @@ void processCmdMovb(CmdStructPtr cmd)
 
 void processCmdInc(CmdStructPtr cmd)
 {
-    arrayPush(cmd->address);
-    arrayPush(opcodes[OP_INC].base | getRegAddr(cmd->param1));
+    int flag = -1;
+    uint16_t word = 0;
 
+    arrayPush(cmd->address);
     cmd->address += 2;
+
+    flag = getType(cmd->param1);
+    if(flag == 3)
+    {
+        arrayPush(0xA9F);
+        arrayPush(cmd->address);
+
+        cmd->address += 2;
+
+        word = parseAttributeInCommand(cmd->param1+1);
+        arrayPush(word);
+    }
+    else
+    {
+        arrayPush(opcodes[OP_INC].base | getRegAddr(cmd->param1));
+    }
 }
 
 void processCmdDec(CmdStructPtr cmd)
@@ -367,7 +384,7 @@ void processCmdAdd(CmdStructPtr cmd)
 
     if(strcmp(cmd->param1, "#fonts") == 0)
     {
-        arrayPush(0x6DC0);
+        arrayPush(0x65C0);
 
         arrayPush(cmd->address);
         cmd->address += 2;
@@ -376,7 +393,7 @@ void processCmdAdd(CmdStructPtr cmd)
     }
     else if(strcmp(cmd->param1, "#40") == 0)
     {
-        arrayPush(0x65C0);
+        arrayPush(0x65C1);
 
         arrayPush(cmd->address);
         cmd->address += 2;

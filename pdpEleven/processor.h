@@ -44,6 +44,8 @@ char* getLastInstruction();
 
 int testProcessor2();
 
+extern void interrupt(uint16_t scancode);
+
 
 
 

@@ -8,7 +8,7 @@
 
 #include "test_program.h"
 
-#define WRITELOG
+//#define WRITELOG
 
 // Flags
 
@@ -522,6 +522,7 @@ int add16(Instruction *inst) {
     if(IS_BYTE(*src) == IS_BYTE(*dst)) {
         start_sign = IS_BYTE(*src);
     }
+
     *dst += *src;
     res_sign = IS_BYTE(*dst);
     SET_IF(_N, res_sign);
@@ -953,8 +954,8 @@ void interruptStart(uint16_t ind) {
 }
 
 void interrupt(uint16_t scancode) {
-    interruptFlag = 1;
-
     *getMemory(INTERRUPT_KEYBOARD) = scancode;
+
+    interruptFlag = 1;
 }
 

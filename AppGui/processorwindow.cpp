@@ -75,7 +75,8 @@ void ProcessorWindow::keyPressEvent( QKeyEvent *k )
     if(!ch.isEmpty())
     {
         int asciNumber = (int)(ch[0].toLatin1());
-        printf("%d", asciNumber);
+        //printf("%d", asciNumber);
+        interrupt((uint16_t) asciNumber);
     }
 }
 
@@ -253,7 +254,7 @@ uint16_t programm_2 [] = {
 012737,
 001012,
 000060,
-000167,
+000127,
 001072,
 
 010046,
@@ -270,8 +271,8 @@ uint16_t programm_2 [] = {
 
 070027,
 000010,
-066700,
-0175732,
+062700, // !!!
+FONTS_ADR,
 
 0112011,
 062701,
@@ -297,7 +298,7 @@ void loadTestProgramm(void) {
         mem[i] = programm_2[i];
     }
 
-    *getMemory(0177562) = 'A';
+    *getMemory(0177562) = 'a';
 }
 
 void ProcessorWindow::on_loadButton_clicked()

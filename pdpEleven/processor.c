@@ -5,10 +5,11 @@
 #include "memory.h"
 #include <time.h>
 #include <stdlib.h>
+#include "font.h"
 
 #include "test_program.h"
 
-//#define WRITELOG
+#define WRITELOG
 
 // Flags
 
@@ -398,12 +399,6 @@ int fetchOperands(Instruction *inst) {
         incrementPC();
 
     inst->execute = 0;
-/*
-#ifdef WRITELOG
-    sprintf(logging, "FETCHOP: src=%o dst=%o", (int) inst->src_val, (int)inst->dst_val);
-    writelog(LOGFILE, logging);
-#endif
-*/
     return 1;
 
 }
@@ -427,11 +422,11 @@ int writeOperands(Instruction *inst) {
     }
 
     inst->execute = 0;
-
+/*
 #ifdef WRITELOG    
     writelog(LOGFILE, "");
 #endif
-
+*/
     return 1;
 }
 
@@ -654,12 +649,7 @@ int decode(Instruction *res) {
 
     sprintf(lastInstruction, "%o %o %s\n", *getRegister(PC_REG), opcode, opcodes[res->index].name);
 
-/*
-#ifdef WRITELOG
-    sprintf(logging, "DECODE: index=%o opcode=%o", res.index, res.code);
-    writelog(LOGFILE, logging);
-#endif
-*/
+
 
     return 1;
 }
@@ -678,14 +668,14 @@ int evalOneCycle(int *tact) {
     //uint16_t opcode;
     int use_inc;
     Instruction instruction = initInstruction();
-
+/*
 #ifdef WRITELOG
     sprintf(logging, "\nR0:%o R1:%o R2:%o R3:%o R4:%o R5:%o R6:%o R7:%o",
            registers[0], registers[1], registers[2], registers[3], registers[4],
             registers[5], registers[6], registers[7]);
     writelog(LOGFILE, logging);
 #endif
-
+*/
     instruction.execute = 0;
     (*tact) ++;
     fetchMem(&instruction);
@@ -698,11 +688,11 @@ int evalOneCycle(int *tact) {
 
 
     //printf("%d %o %s\n", *getRegister(PC_REG), opcode, opcodes[instruction.index].name);
-
+/*
 #ifdef WRITELOG
     writelog(LOGFILE, lastInstruction);
 #endif
-
+*/
     if(instruction.index == OP_HALT) return -1;
 
     (*tact)++;
@@ -954,7 +944,9 @@ void interruptStart(uint16_t ind) {
 }
 
 void interrupt(uint16_t scancode) {
-    *getMemory(INTERRUPT_KEYBOARD) = scancode;
+    writelog(LOGFILE, "Interrupt");
+    *getMemory(FONTS_SCAN) = scancode;
+    *getMemory(INTERRUPT_KEYBOARD) = 01012;
 
     interruptFlag = 1;
 }

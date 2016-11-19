@@ -7,6 +7,7 @@
 #define CH_WIDTH     8
 
 #define FONTS_ADR 0117000
+#define FONTS_SCAN 0177562
 
 static const char font[TOTAL_SYMBOL][CH_HEIGHT] = {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0000 (nul)
